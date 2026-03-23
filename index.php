@@ -12,363 +12,525 @@ if (!isset($_SESSION['user_id'])) {
 <html lang="en">
 
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Travel Blog</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Blog</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
 
-<style>
-body {
-    font-family: Poppins;
-    background: #f5f5f5;
-    margin: 0;
-    scroll-behavior: smooth;
-}
+    <style>
+        body {
+            font-family: Poppins;
+            background: #f5f5f5;
+            margin: 0;
+            scroll-behavior: smooth;
+        }
 
-/* Navbar */
-.navbar {
-    background: linear-gradient(90deg, #667eea, #764ba2);
-    color: white;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
 
-.navbar a {
-    color: white;
-    margin-left: 10px;
-    text-decoration: none;
-}
+        .navbar a {
+            color: white;
+            margin-left: 10px;
+            text-decoration: none;
+        }
 
-/* HERO */
-.hero {
-    text-align: center;
-    padding: 50px 20px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-}
+        /* 🆕 DARK MODE */
+        .dark {
+            background: #111;
+            color: white;
+        }
 
-.hero h1 {
-    font-size: 36px;
-    animation: fadeDown 1s ease;
-}
+        .dark .card {
+            background: #222;
+            color: white;
+        }
 
-.hero p {
-    opacity: 0.9;
-    animation: fadeUp 1.2s ease;
-}
+        .dark .navbar {
+            background: black;
+        }
 
-.hero-btn {
-    padding: 10px 20px;
-    background: white;
-    color: black;
-    border-radius: 8px;
-    text-decoration: none;
-}
+        /* HERO */
+        .hero {
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
 
-.hero-btn:hover {
-    background: #eee;
-}
+        .hero h1 {
+            font-size: 36px;
+            animation: fadeDown 1s ease;
+        }
 
-@keyframes fadeDown {
-    from {opacity:0; transform: translateY(-20px);}
-    to {opacity:1; transform: translateY(0);}
-}
+        .hero p {
+            opacity: 0.9;
+            animation: fadeUp 1.2s ease;
+        }
 
-@keyframes fadeUp {
-    from {opacity:0; transform: translateY(20px);}
-    to {opacity:1; transform: translateY(0);}
-}
+        .hero-btn {
+            padding: 10px 20px;
+            background: white;
+            color: black;
+            border-radius: 8px;
+            text-decoration: none;
+        }
 
-/* SLIDER */
-.slider {
-    width: 100%;
-    height: 300px;
-    overflow: hidden;
-    border-radius: 10px;
-    margin: 20px auto;
-    max-width: 1000px;
-}
+        .hero-btn:hover {
+            background: #eee;
+        }
 
-.slides {
-    display: flex;
-    height: 100%;
-    animation: slide 12s infinite ease-in-out;
-}
+        @keyframes fadeDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
 
-.slides img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    background: #ddd;
-}
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-@keyframes slide {
-    0%{transform:translateX(0);}
-    33%{transform:translateX(-100%);}
-    66%{transform:translateX(-200%);}
-}
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
 
-/* SEARCH */
-.search {
-    text-align: center;
-    margin-bottom: 20px;
-}
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-.search input {
-    padding: 12px;
-    width: 80%;
-    max-width: 400px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-}
+        /* SLIDER */
+        .slider {
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 1000px;
+        }
 
-.search input:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 10px rgba(102,126,234,0.4);
-}
+        .slides {
+            display: flex;
+            height: 100%;
+            animation: slide 12s infinite ease-in-out;
+        }
 
-/* Container */
-.container { padding: 20px; }
+        .slides img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #ddd;
+        }
 
-/* Grid */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-}
+        @keyframes slide {
+            0% {
+                transform: translateX(0);
+            }
 
-/* Card */
-.card {
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    transition: 0.5s;
-    cursor: pointer;
-    opacity: 0;
-    transform: translateY(30px);
-}
+            33% {
+                transform: translateX(-100%);
+            }
 
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-}
+            66% {
+                transform: translateX(-200%);
+            }
+        }
 
-.card img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-}
+        /* SEARCH */
+        .search {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-.card-content { padding: 15px; }
+        .search input {
+            padding: 12px;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
 
-.card h3 { margin: 0 0 10px; }
+        .search input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);
+        }
 
-.card p { font-size: 14px; color: #555; }
+        /* Container */
+        .container {
+            padding: 20px;
+        }
 
-/* Accordion */
-.accordion { padding: 20px; }
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
 
-.acc-item button {
-    width: 100%;
-    padding: 10px;
-    background: #333;
-    color: white;
-    border: none;
-    text-align: left;
-}
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: 0.5s;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(30px);
+        }
 
-.content {
-    display: none;
-    padding: 10px;
-    background: #eee;
-}
+        /* 🆕 IMAGE ZOOM */
+        .card img {
+            transition: 0.5s;
+        }
 
-/* Loader */
-#loader {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background: white;
-    z-index: 9999;
-}
+        .card:hover img {
+            transform: scale(1.1);
+        }
 
-/* EXTRA FEATURES */
-.extra-section {
-    padding: 40px 20px;
-    text-align: center;
-    background: #fff;
-}
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
 
-.feature-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-}
+        .card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
 
-.feature-card {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    padding: 20px;
-    border-radius: 15px;
-    transition: 0.4s;
-}
+        .card-content {
+            padding: 15px;
+        }
 
-.feature-card:hover {
-    transform: translateY(-10px);
-}
+        .card h3 {
+            margin: 0 0 10px;
+        }
 
-/* FOOTER */
-.footer {
-    background: #111;
-    color: #bbb;
-    padding: 30px 20px;
-    text-align: center;
-}
+        .card p {
+            font-size: 14px;
+            color: #555;
+        }
 
-.footer h3 { color: white; }
+        /* Accordion */
+        .accordion {
+            padding: 20px;
+        }
 
-.footer a {
-    color: #667eea;
-    text-decoration: none;
-    margin: 0 10px;
-}
+        .acc-item button {
+            width: 100%;
+            padding: 10px;
+            background: #333;
+            color: white;
+            border: none;
+            text-align: left;
+        }
 
-/* Responsive */
-@media(max-width: 500px){
-    .navbar {
-        flex-direction: column;
-        text-align: center;
-    }
-}
+        .content {
+            display: none;
+            padding: 10px;
+            background: #eee;
+        }
 
-</style>
+        /* Loader */
+        #loader {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 9999;
+        }
+
+        /* 🆕 LOADER SPINNER */
+        #loader::after {
+            content: "";
+            width: 40px;
+            height: 40px;
+            border: 5px solid #ccc;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        /* 🆕 TOP BUTTON */
+        #topBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: none;
+            cursor: pointer;
+        }
+
+        /* EXTRA FEATURES */
+        .extra-section {
+            padding: 40px 20px;
+            text-align: center;
+            background: #fff;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            transition: 0.4s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        /* FOOTER */
+        .footer {
+            background: #111;
+            color: #bbb;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .footer h3 {
+            color: white;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        /* Responsive */
+        @media(max-width: 500px) {
+            .navbar {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
 
 </head>
 
 <body>
 
-<div id="loader"></div>
+    <div id="loader"></div>
 
-<div class="navbar">
-    <div>🌍 Travel Blog</div>
-    <div>
-        Welcome <?php echo $_SESSION['user_name']; ?>
-        <a href="add-post.php">Add Blog</a>
-        <a href="logout.php">Logout</a>
-    </div>
-</div>
+    <div class="navbar">
+        <div>🌍 Travel Blog</div>
+        <div>
+            Welcome <?php echo $_SESSION['user_name']; ?>
+            <a href="add-post.php">Add Blog</a>
+            <a href="logout.php">Logout</a>
 
-<section class="hero">
-    <h1>Explore Travel Memories 🌍</h1>
-    <p>Write, Share & Relive your journeys</p>
-    <a href="add-post.php" class="hero-btn">Start Blogging</a>
-</section>
-
-<div class="slider">
-    <div class="slides">
-        <img src="images/1 .jpg"> 
-        <img src="images/1 .jpg">
-        <img src="images/1 .jpg">
-    </div>
-</div>
-
-<div class="container">
-
-    <div class="search">
-        <input type="text" id="searchInput" placeholder="Search blogs...">
+            <!-- 🆕 DARK BUTTON -->
+            <button onclick="toggleDark()">🌙</button>
+        </div>
     </div>
 
-    <h2>All Travel Blogs</h2>
+    <section class="hero">
+        <h1>Explore Travel Memories 🌍</h1>
+        <p>Write, Share & Relive your journeys</p>
+        <a href="add-post.php" class="hero-btn">Start Blogging</a>
+    </section>
 
-    <div class="grid">
-    <?php
-    $result = mysqli_query($conn, "SELECT * FROM posts ORDER BY id DESC");
-    if (mysqli_num_rows($result) > 0) {
-        while ($row = mysqli_fetch_assoc($result)) {
-    ?>
-        <a href="<?php echo $row['slug']; ?>" style="text-decoration:none; color:black;">
-            <div class="card">
-                <img src="uploads/<?php echo $row['image']; ?>">
-                <div class="card-content">
-                    <h3><?php echo $row['title']; ?></h3>
-                    <p><?php echo substr($row['description'], 0, 100); ?>...</p>
+    <div class="slider">
+        <div class="slides">
+            <img src="images/1 .jpg">
+            <img src="images/1 .jpg">
+            <img src="images/1 .jpg">
+        </div>
+    </div>
+
+    <div class="container">
+
+        <div class="search">
+            <input type="text" id="searchInput" placeholder="Search blogs...">
+        </div>
+
+        <h2>All Travel Blogs</h2>
+
+        <?php
+        $result = mysqli_query($conn, "SELECT * FROM posts ORDER BY id DESC");
+        ?>
+
+        <p style="text-align:center;">
+            Total Blogs: <?php echo mysqli_num_rows($result); ?>
+        </p>
+
+        <div class="grid">
+            <?php
+            $result = mysqli_query($conn, "SELECT * FROM posts ORDER BY id DESC");
+            if (mysqli_num_rows($result) > 0) {
+                while ($row = mysqli_fetch_assoc($result)) {
+            ?>
+                    <a href="<?php echo $row['slug']; ?>" style="text-decoration:none; color:black;">
+                        <div class="card">
+                            <img src="uploads/<?php echo $row['image']; ?>">
+                            <div class="card-content">
+                                <h3><?php echo $row['title']; ?></h3>
+                                <p><?php echo substr($row['description'], 0, 100); ?>...</p>
+                            </div>
+                        </div>
+                    </a>
+            <?php }
+            } ?>
+        </div>
+
+        <!-- EXTRA SECTION -->
+        <div class="extra-section">
+            <h2>✨ Why Choose Us</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>🌍 Explore</h3>
+                    <p>Discover travel stories</p>
+                </div>
+                <div class="feature-card">
+                    <h3>✍️ Write</h3>
+                    <p>Share your journey</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📸 Memories</h3>
+                    <p>Save forever</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🚀 Grow</h3>
+                    <p>Build your audience</p>
                 </div>
             </div>
-        </a>
-    <?php } } ?>
-    </div>
-
-    <!-- EXTRA SECTION -->
-    <div class="extra-section">
-        <h2>✨ Why Choose Us</h2>
-        <div class="feature-grid">
-            <div class="feature-card"><h3>🌍 Explore</h3><p>Discover travel stories</p></div>
-            <div class="feature-card"><h3>✍️ Write</h3><p>Share your journey</p></div>
-            <div class="feature-card"><h3>📸 Memories</h3><p>Save forever</p></div>
-            <div class="feature-card"><h3>🚀 Grow</h3><p>Build your audience</p></div>
         </div>
-    </div>
 
-    <div class="accordion">
-        <div class="acc-item">
-            <button>🌍 Why use this blog?</button>
-            <div class="content">Store your travel memories forever.</div>
+        <div class="accordion">
+            <div class="acc-item">
+                <button>🌍 Why use this blog?</button>
+                <div class="content">Store your travel memories forever.</div>
+            </div>
         </div>
+
     </div>
 
-</div>
+    <!-- 🆕 TOP BUTTON -->
+    <button id="topBtn">⬆️</button>
 
-<!-- FOOTER -->
-<div class="footer">
-    <h3>🌍 Travel Blog</h3>
-    <p>Made with ❤️ by Vedant</p>
-    <a href="#">Home</a>
-    <a href="add-post.php">Add Blog</a>
-</div>
+    <!-- FOOTER -->
+    <div class="footer">
+        <h3>🌍 Travel Blog</h3>
+        <p>Made with ❤️ by Vedant</p>
+        <a href="#">Home</a>
+        <a href="add-post.php">Add Blog</a>
+    </div>
 
-<script>
-// same JS
-document.addEventListener("DOMContentLoaded", function(){
-    document.querySelectorAll(".acc-item button").forEach(btn => {
-        btn.addEventListener("click", () => {
-            let content = btn.nextElementSibling;
-            content.style.display =
-                content.style.display === "block" ? "none" : "block";
-        });
-    });
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
 
-    let search = document.getElementById("searchInput");
-    if(search){
-        search.addEventListener("keyup", function() {
-            let value = this.value.toLowerCase();
-            document.querySelectorAll(".card").forEach(card => {
-                card.style.display =
-                    card.innerText.toLowerCase().includes(value)
-                    ? "block"
-                    : "none";
-            });
-        });
-    }
-
-    window.onload = () => document.getElementById("loader").style.display = "none";
-
-    window.addEventListener("scroll", () => {
-        document.querySelectorAll(".card").forEach(card => {
-            let top = card.getBoundingClientRect().top;
-            if(top < window.innerHeight - 50){
-                card.style.opacity = 1;
-                card.style.transform = "translateY(0)";
+            // ✅ LOADER FIX (yahi main fix hai)
+            let loader = document.getElementById("loader");
+            if (loader) {
+                loader.style.display = "none";
             }
+
+            // ACCORDION
+            document.querySelectorAll(".acc-item button").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    let content = btn.nextElementSibling;
+                    content.style.display =
+                        content.style.display === "block" ? "none" : "block";
+                });
+            });
+
+            // SEARCH
+            let search = document.getElementById("searchInput");
+            if (search) {
+                search.addEventListener("keyup", function() {
+                    let value = this.value.toLowerCase();
+                    document.querySelectorAll(".card").forEach(card => {
+                        card.style.display =
+                            card.innerText.toLowerCase().includes(value) ?
+                            "block" :
+                            "none";
+                    });
+                });
+            }
+
+            // SCROLL ANIMATION + TOP BTN
+            window.addEventListener("scroll", () => {
+
+                document.querySelectorAll(".card").forEach(card => {
+                    let top = card.getBoundingClientRect().top;
+                    if (top < window.innerHeight - 50) {
+                        card.style.opacity = 1;
+                        card.style.transform = "translateY(0)";
+                    }
+                });
+
+                let topBtn = document.getElementById("topBtn");
+                if (topBtn) {
+                    topBtn.style.display = window.scrollY > 300 ? "block" : "none";
+                }
+            });
+
         });
-    });
-});
-</script>
+
+        // DARK MODE
+        function toggleDark() {
+            document.body.classList.toggle("dark");
+        }
+
+        // TOP BUTTON CLICK
+        let topBtn = document.getElementById("topBtn");
+        if (topBtn) {
+            topBtn.onclick = () => window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+
+        //🆕 DARK MODE
+        function toggleDark() {
+            document.body.classList.toggle("dark");
+        }
+
+        // 🆕 TOP CLICK
+        document.getElementById("topBtn").onclick = () => {
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        };
+    </script>
 
 </body>
+
 </html>
