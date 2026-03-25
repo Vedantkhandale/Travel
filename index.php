@@ -6,6 +6,9 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
+
+// Fetch user name from session or database
+$user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Explorer";
 ?>
 
 <!DOCTYPE html>
@@ -14,9 +17,7 @@ if (!isset($_SESSION['user_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><a href="post.php?slug=<?php echo $row['slug']; ?>" style="text-decoration:none; color:inherit;">
-            <h3><?php echo $row['title']; ?></h3>
-        </a></title>
+    <title>Travel_Blogs</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -118,6 +119,19 @@ if (!isset($_SESSION['user_id'])) {
             width: 100%;
         }
 
+        .user-welcome {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-right: 1px solid var(--border);
+            padding-right: 15px;
+            margin-right: 5px;
+        }
+
+        .user-welcome span {
+            color: var(--primary);
+        }
+
         .btn-post {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white !important;
@@ -133,6 +147,14 @@ if (!isset($_SESSION['user_id'])) {
         .btn-post:hover {
             transform: scale(1.05) translateY(-2px);
             box-shadow: 0 12px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* --- Mobile Menu Toggle --- */
+        .menu-toggle {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-main);
         }
 
         /* --- Ultra Heroic Section --- */
@@ -465,18 +487,60 @@ if (!isset($_SESSION['user_id'])) {
             transform: rotate(10deg) translateY(-5px);
         }
 
+        @media (max-width: 992px) {
+            .navbar {
+                padding: 1rem 5%;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 75px;
+                right: -100%;
+                flex-direction: column;
+                background: var(--card-bg);
+                width: 250px;
+                height: auto;
+                padding: 30px;
+                border-radius: 20px 0 0 20px;
+                box-shadow: -10px 10px 30px rgba(0, 0, 0, 0.1);
+                transition: 0.5s;
+                align-items: flex-start;
+                z-index: 999;
+            }
+
+            .nav-links.active {
+                right: 0;
+            }
+
+            .user-welcome {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                width: 100%;
+                padding-bottom: 15px;
+                margin-bottom: 10px;
+            }
+        }
+
         @media (max-width: 768px) {
             .footer-grid {
                 grid-template-columns: 1fr;
             }
 
-            .navbar {
-                padding: 1rem 5%;
-            }
-
             .hero h1 {
                 font-size: 2.8rem;
             }
+        }
+
+        /* Card delete hone ka animation */
+        .fade-out-card {
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.5s ease;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -485,7 +549,15 @@ if (!isset($_SESSION['user_id'])) {
 
     <nav class="navbar" id="mainNav">
         <a href="index.php" class="logo"><i class="fas fa-map-marked-alt"></i> Travel<span>Blog</span></a>
-        <div class="nav-links">
+
+        <div class="menu-toggle" id="mobile-menu">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <div class="nav-links" id="navLinks">
+            <div class="user-welcome">
+                <i class="fas fa-user-circle"></i> Hi, <span><?php echo htmlspecialchars($user_name); ?></span>
+            </div>
             <a href="index.php">Feed</a>
             <a href="add-post.php" class="btn-post">New Story</a>
             <a href="logout.php">Logout</a>
@@ -530,19 +602,19 @@ if (!isset($_SESSION['user_id'])) {
             if (mysqli_num_rows($result) > 0) {
                 while ($row = mysqli_fetch_assoc($result)) {
             ?>
-                    <article class="card" data-title="<?php echo strtolower($row['title']); ?>">
+                    <article class="card" id="post-<?php echo $row['id']; ?>" data-title="<?php echo strtolower($row['title']); ?>">
                         <div class="card-img">
                             <img src="uploads/<?php echo $row['image']; ?>" alt="Blog">
                         </div>
+
                         <div class="card-body">
-                            <a href="<?php echo $row['slug']; ?>" style="text-decoration:none; color:inherit;">
-                                <h3><a href="post.php?slug=<?php echo $row['slug']; ?>" style="text-decoration:none; color:inherit;">
-                                        <h3><?php echo $row['title']; ?></h3>
-                                    </a></h3>
+                            <a href="post.php?slug=<?php echo $row['slug']; ?>" style="text-decoration:none; color:inherit;">
+                                <h3 style="margin:0;"><?php echo htmlspecialchars($row['title']); ?></h3>
                             </a>
                             <p><?php echo substr(strip_tags($row['description']), 0, 110); ?>...</p>
                         </div>
-                        <div class="card-footer">
+
+                        <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                             <div class="stats">
                                 <div class="stat-item" onclick="toggleLike(this)">
                                     <i class="far fa-heart"></i> <b class="count">1.2k</b>
@@ -551,13 +623,26 @@ if (!isset($_SESSION['user_id'])) {
                                     <i class="far fa-comment"></i> <b>45</b>
                                 </div>
                             </div>
-                            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;">
+
+                            <div class="actions" style="display: flex; gap: 15px; align-items: center; background: var(--bg-light); padding: 5px 12px; border-radius: 10px;">
+                                <a href="edit-post.php?id=<?php echo $row['id']; ?>" title="Edit Post" style="color: var(--primary); font-size: 1rem; transition: 0.3s;">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="javascript:void(0)" onclick="deletePost(<?php echo $row['id']; ?>)" title="Delete Post" style="color: #f43f5e; font-size: 1rem; transition: 0.3s;">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+
+                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">
                                 <i class="far fa-calendar-alt"></i> 2026
                             </span>
                         </div>
                     </article>
             <?php }
-            } ?>
+            } else {
+                echo "<p style='text-align:center; grid-column: 1/-1;'>No posts found. Start sharing your stories!</p>";
+            }
+            ?>
         </div>
     </main>
 
@@ -599,6 +684,17 @@ if (!isset($_SESSION['user_id'])) {
             else nav.classList.remove('scrolled');
         };
 
+        // Mobile Menu Toggle logic
+        const menuToggle = document.getElementById('mobile-menu');
+        const navLinks = document.getElementById('navLinks');
+
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = menuToggle.querySelector('i');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-times');
+        });
+
         function toggleTheme() {
             const body = document.body;
             body.classList.toggle("dark");
@@ -627,6 +723,23 @@ if (!isset($_SESSION['user_id'])) {
         window.onload = () => {
             if (document.body.classList.contains("dark")) {
                 document.querySelector("#themeBtn i").className = "fas fa-sun";
+            }
+        }
+
+        function deletePost(postId) {
+            if (confirm("Kya aap sach mein ye post delete karna chahte hain?")) {
+                // Animation start karein
+                const card = document.getElementById('post-' + postId);
+
+                // AJAX call delete karne ke liye
+                fetch('delete-post.php?id=' + postId)
+                    .then(response => {
+                        card.classList.add('fade-out-card'); // Animation trigger
+                        setTimeout(() => {
+                            card.remove(); // 0.5 second baad DOM se hata dein
+                        }, 500);
+                    })
+                    .catch(err => alert("Kucch galat hua!"));
             }
         }
     </script>
