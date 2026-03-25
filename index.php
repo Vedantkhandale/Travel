@@ -742,6 +742,24 @@ $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Explorer"
                     .catch(err => alert("Kucch galat hua!"));
             }
         }
+        // Index.php ke script mein ye function update karo
+        function deletePost(postId) {
+            // Custom confirm style (optional)
+            const card = document.getElementById('post-' + postId);
+
+            if (confirm("Are you sure? This memory will be gone forever! 🏝️")) {
+                // Red glow effect before vanishing
+                card.style.border = "2px solid #f43f5e";
+                card.style.boxShadow = "0 0 20px rgba(244, 63, 94, 0.2)";
+
+                fetch('delete-post.php?id=' + postId)
+                    .then(res => {
+                        card.style.transform = "scale(0.8) rotate(-5deg)";
+                        card.style.opacity = "0";
+                        setTimeout(() => card.remove(), 500);
+                    });
+            }
+        }
     </script>
 </body>
 
