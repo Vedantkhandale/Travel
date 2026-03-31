@@ -31,7 +31,7 @@ if (!$post) {
             --primary: #6366f1;
             --text: #0f172a;
             --muted: #64748b;
-            --glass: rgba(255, 255, 255, 0.85);
+            --glass: rgba(255, 255, 255, 0.9);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -41,22 +41,25 @@ if (!$post) {
             background: #f1f5f9; 
             color: var(--text); 
             line-height: 1.8; 
+            overflow-x: hidden;
         }
 
         /* Hero Image Section */
         .post-hero {
-            width: 100%; height: 70vh;
+            width: 100%; 
+            height: 60vh; /* Responsive height */
+            min-height: 350px;
             position: relative;
             background: #000;
         }
         .post-hero img { 
             width: 100%; height: 100%; 
             object-fit: cover; 
-            opacity: 0.8;
+            opacity: 0.7;
         }
         .post-hero::after {
             content: ''; position: absolute; bottom: 0; left: 0; width: 100%;
-            height: 60%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            height: 70%; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
         }
 
         .post-header-content {
@@ -64,65 +67,96 @@ if (!$post) {
             transform: translateX(-50%);
             width: 90%; max-width: 900px;
             color: white; z-index: 10;
+            text-align: center;
         }
         .post-header-content h1 { 
-            font-size: clamp(2.2rem, 5vw, 4rem); 
+            font-size: clamp(1.8rem, 5vw, 3.5rem); 
             font-weight: 800; 
-            line-height: 1.1; 
-            letter-spacing: -2px;
+            line-height: 1.2; 
+            letter-spacing: -1px;
             margin-top: 15px;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
         /* Floating Content Card */
         .content-container {
             max-width: 850px; 
-            margin: -80px auto 100px;
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            padding: 60px;
-            border-radius: 35px; 
+            margin: -60px auto 60px; /* Overlap effect */
+            background: #ffffff;
+            padding: 40px 25px; /* Mobile-friendly padding */
+            border-radius: 25px; 
             position: relative;
-            box-shadow: 0 40px 100px -20px rgba(0,0,0,0.15);
-            border: 1px solid rgba(255,255,255,0.4);
+            box-shadow: 0 30px 60px -12px rgba(0,0,0,0.1);
+            z-index: 20;
+        }
+        
+        /* Desktop specific card style */
+        @media (min-width: 768px) {
+            .content-container {
+                margin: -100px auto 100px;
+                padding: 60px;
+                border-radius: 35px;
+                background: var(--glass);
+                backdrop-filter: blur(15px);
+                border: 1px solid rgba(255,255,255,0.4);
+            }
         }
         
         .meta-info {
-            display: flex; gap: 25px; margin-bottom: 40px;
-            padding-bottom: 25px; border-bottom: 1px solid rgba(0,0,0,0.05);
-            color: var(--muted); font-weight: 600; font-size: 0.9rem;
-            flex-wrap: wrap;
+            display: flex; gap: 15px; margin-bottom: 30px;
+            padding-bottom: 20px; border-bottom: 1px solid #f1f5f9;
+            color: var(--muted); font-weight: 600; font-size: 0.85rem;
+            flex-wrap: wrap; justify-content: center;
         }
-        .meta-info i { color: var(--primary); margin-right: 5px; }
+        .meta-info i { color: var(--primary); }
 
-        .post-text { font-size: 1.2rem; color: #334155; }
-        .post-text p { margin-bottom: 25px; }
+        .post-text { font-size: 1.1rem; color: #334155; text-align: left; }
+        .post-text p { margin-bottom: 20px; }
 
         /* Smooth Floating Back Button */
         .back-btn {
-            position: fixed; top: 30px; left: 30px;
-            background: white; width: 50px; height: 50px;
-            border-radius: 15px; display: flex; align-items: center; justify-content: center;
+            position: fixed; top: 20px; left: 20px;
+            background: white; width: 45px; height: 45px;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             text-decoration: none; color: var(--text); z-index: 100;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: 0.3s ease;
         }
-        .back-btn:hover { transform: scale(1.1) rotate(-5deg); background: var(--primary); color: white; }
+        .back-btn:hover { background: var(--primary); color: white; transform: scale(1.05); }
 
-        /* Responsive Fixes */
-        @media (max-width: 768px) {
-            .content-container { margin: -50px 15px 50px; padding: 35px 25px; border-radius: 25px; }
-            .post-hero { height: 50vh; }
-            .post-header-content { bottom: 70px; }
-            .back-btn { top: 20px; left: 20px; width: 45px; height: 45px; }
-        }
-
-        /* Footer Decoration */
+        /* Footer & Buttons */
         .post-footer {
-            margin-top: 50px; padding-top: 30px;
-            border-top: 1px solid rgba(0,0,0,0.05);
+            margin-top: 40px; padding-top: 30px;
+            border-top: 1px solid #f1f5f9;
             display: flex; justify-content: space-between; align-items: center;
             flex-wrap: wrap; gap: 20px;
         }
+
+        .share-btns { font-size: 1.2rem; }
+        .share-btns i { margin: 0 10px; cursor: pointer; transition: 0.3s; }
+        .share-btns i:hover { color: var(--primary); }
+
+        @media (max-width: 600px) {
+            .post-footer { flex-direction: column; text-align: center; }
+            .post-header-content { bottom: 80px; }
+            .back-btn { top: 15px; left: 15px; width: 38px; height: 38px; }
+        }
+
+        /* Print Button Responsive */
+        .btn-print {
+            border: 2px solid var(--primary); 
+            background: transparent; 
+            color: var(--primary); 
+            padding: 10px 20px; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: 0.3s;
+            width: 100%; /* Mobile par full width */
+        }
+        @media (min-width: 600px) { .btn-print { width: auto; } }
+        .btn-print:hover { background: var(--primary); color: white; }
+
     </style>
 </head>
 <body>
@@ -132,7 +166,7 @@ if (!$post) {
     <header class="post-hero">
         <img src="uploads/<?php echo $post['image']; ?>" alt="Cover Image">
         <div class="post-header-content">
-            <span style="background: var(--primary); padding: 6px 16px; border-radius: 50px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">
+            <span style="background: var(--primary); padding: 5px 14px; border-radius: 50px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
                 Adventure
             </span>
             <h1><?php echo $post['title']; ?></h1>
@@ -152,12 +186,12 @@ if (!$post) {
 
         <footer class="post-footer">
             <div class="share-btns">
-                <span style="font-weight: 800; margin-right: 15px;">Share Story:</span>
-                <i class="fab fa-twitter" style="margin-right: 15px; cursor:pointer; color: #1DA1F2;"></i>
-                <i class="fab fa-facebook" style="margin-right: 15px; cursor:pointer; color: #4267B2;"></i>
-                <i class="fab fa-whatsapp" style="cursor:pointer; color: #25D366;"></i>
+                <span style="font-weight: 800; font-size: 0.9rem; display: block; margin-bottom: 10px;">Share Story:</span>
+                <i class="fab fa-twitter" style="color: #1DA1F2;"></i>
+                <i class="fab fa-facebook" style="color: #4267B2;"></i>
+                <i class="fab fa-whatsapp" style="color: #25D366;"></i>
             </div>
-            <button onclick="window.print()" style="border:2px solid var(--primary); background:transparent; color:var(--primary); padding: 8px 18px; border-radius: 12px; font-weight:700; cursor:pointer; transition: 0.3s;">
+            <button class="btn-print" onclick="window.print()">
                 <i class="fas fa-print"></i> Save PDF
             </button>
         </footer>
