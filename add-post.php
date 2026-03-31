@@ -16,7 +16,7 @@ if(isset($_POST['submit'])){
 
     $image = $_FILES['image']['name'];
     $extension = pathinfo($image, PATHINFO_EXTENSION);
-    $new_name = time() . '.' . $extension; // Unique name taaki image overwrite na ho
+    $new_name = time() . '.' . $extension; 
     $tmp = $_FILES['image']['tmp_name'];
 
     if(move_uploaded_file($tmp, "uploads/".$new_name)){
@@ -46,22 +46,24 @@ if(isset($_POST['submit'])){
             --border: rgba(0,0,0,0.08);
         }
 
+        * { box-sizing: border-box; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             margin: 0; background: var(--bg); color: var(--text);
             overflow-x: hidden;
         }
 
-        .wrapper { display: flex; min-height: 100vh; }
+        /* Responsive Wrapper */
+        .wrapper { display: flex; min-height: 100vh; flex-wrap: wrap; }
 
         /* Left Side: Form */
         .form-side {
-            width: 45%; padding: 60px;
+            flex: 1; min-width: 320px; padding: 60px;
             background: #fff; border-right: 1px solid var(--border);
             display: flex; flex-direction: column; justify-content: center;
         }
 
-        .form-side h2 { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; letter-spacing: -1.5px; }
+        .form-side h2 { font-size: clamp(1.8rem, 5vw, 2.5rem); font-weight: 800; margin-bottom: 10px; letter-spacing: -1.5px; }
         .form-side p { color: #64748b; margin-bottom: 40px; }
 
         .input-group { margin-bottom: 25px; }
@@ -84,7 +86,7 @@ if(isset($_POST['submit'])){
         .upload-area i { font-size: 2rem; color: var(--primary); margin-bottom: 10px; }
 
         .btn-publish {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            width: 100%; background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white; border: none; padding: 18px; border-radius: 14px;
             font-weight: 700; font-size: 1rem; cursor: pointer;
             box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2); transition: 0.3s;
@@ -94,7 +96,7 @@ if(isset($_POST['submit'])){
 
         /* Right Side: Preview */
         .preview-side {
-            width: 55%; background: #f1f5f9;
+            flex: 1.2; min-width: 320px; background: #f1f5f9;
             display: flex; align-items: center; justify-content: center;
             padding: 40px; position: sticky; top: 0; height: 100vh;
         }
@@ -108,22 +110,23 @@ if(isset($_POST['submit'])){
 
         .preview-img { width: 100%; height: 280px; object-fit: cover; background: #e2e8f0; }
         .preview-content { padding: 30px; }
-        .preview-content h3 { font-size: 1.8rem; margin: 0 0 15px; font-weight: 800; }
+        .preview-content h3 { font-size: 1.8rem; margin: 0 0 15px; font-weight: 800; line-height: 1.2; }
         .preview-content p { color: #64748b; line-height: 1.6; }
 
-        /* Success Popup */
         .success-msg {
             position: fixed; top: 20px; right: 20px; background: #22c55e;
             color: white; padding: 15px 30px; border-radius: 12px;
-            font-weight: 600; animation: slideIn 0.5s forwards;
+            font-weight: 600; z-index: 1000; animation: slideIn 0.5s forwards;
         }
 
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
-        @media (max-width: 1000px) {
+        /* Mobile Adjustments */
+        @media (max-width: 1024px) {
             .wrapper { flex-direction: column; }
-            .form-side, .preview-side { width: 100%; height: auto; padding: 30px; }
-            .preview-side { position: static; }
+            .form-side { padding: 40px 20px; border-right: none; }
+            .preview-side { position: relative; height: auto; padding: 60px 20px; }
+            .preview-card { max-width: 100%; }
         }
     </style>
 </head>
@@ -136,7 +139,7 @@ if(isset($_POST['submit'])){
 
 <div class="wrapper">
     <div class="form-side">
-        <a href="index.php" style="text-decoration:none; color:var(--primary); font-weight:700; margin-bottom:20px; display:block;">
+        <a href="index.php" style="text-decoration:none; color:var(--primary); font-weight:700; margin-bottom:20px; display:inline-block;">
             <i class="fas fa-arrow-left"></i> Back to Feed
         </a>
         <h2>Share Your Story</h2>
@@ -187,17 +190,14 @@ if(isset($_POST['submit'])){
     const descInput = document.getElementById('descInput');
     const fileInput = document.getElementById('fileInput');
 
-    // Live Title Update
     titleInput.addEventListener('input', (e) => {
         document.getElementById('prevTitle').innerText = e.target.value || "Your Title Here";
     });
 
-    // Live Description Update
     descInput.addEventListener('input', (e) => {
         document.getElementById('prevDesc').innerText = e.target.value.substring(0, 150) + (e.target.value.length > 150 ? '...' : '') || "Your story preview...";
     });
 
-    // Live Image Preview
     fileInput.addEventListener('change', function() {
         const file = this.files[0];
         if (file) {
@@ -205,8 +205,6 @@ if(isset($_POST['submit'])){
             const reader = new FileReader();
             reader.onload = function(e) {
                 document.getElementById('prevImg').src = e.target.result;
-                document.getElementById('cardWrap').style.transform = "scale(1.02)";
-                setTimeout(()=> document.getElementById('cardWrap').style.transform = "scale(1)", 300);
             }
             reader.readAsDataURL(file);
         }
