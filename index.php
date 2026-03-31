@@ -727,26 +727,7 @@ $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Explorer"
         }
 
         function deletePost(postId) {
-            if (confirm("Kya aap sach mein ye post delete karna chahte hain?")) {
-                // Animation start karein
-                const card = document.getElementById('post-' + postId);
-
-                // AJAX call delete karne ke liye
-                fetch('delete-post.php?id=' + postId)
-                    .then(response => {
-                        card.classList.add('fade-out-card'); // Animation trigger
-                        setTimeout(() => {
-                            card.remove(); // 0.5 second baad DOM se hata dein
-                        }, 500);
-                    })
-                    .catch(err => alert("Kucch galat hua!"));
-            }
-        }
-        // Index.php ke script mein ye function update karo
-        function deletePost(postId) {
-            // Custom confirm style (optional)
             const card = document.getElementById('post-' + postId);
-
             if (confirm("Are you sure? This memory will be gone forever! 🏝️")) {
                 // Red glow effect before vanishing
                 card.style.border = "2px solid #f43f5e";
@@ -754,10 +735,10 @@ $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Explorer"
 
                 fetch('delete-post.php?id=' + postId)
                     .then(res => {
-                        card.style.transform = "scale(0.8) rotate(-5deg)";
-                        card.style.opacity = "0";
+                        card.classList.add('fade-out-card');
                         setTimeout(() => card.remove(), 500);
-                    });
+                    })
+                    .catch(err => alert("Kucch galat hua!"));
             }
         }
     </script>
