@@ -558,9 +558,9 @@ $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Explorer"
             <div class="user-welcome">
                 <i class="fas fa-user-circle"></i> Hi, <span><?php echo htmlspecialchars($user_name); ?></span>
             </div>
-            <a href="index.php">Feed</a>
-            <a href="add-post.php" class="btn-post">New Story</a>
-            <a href="logout.php">Logout</a>
+            <a href="/index">Feed</a>
+            <a href="/add-post" class="btn-post">New Story</a>
+            <a href="/logout">Logout</a>
             <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">
                 <i class="fas fa-moon"></i>
             </button>

@@ -6,7 +6,7 @@ include 'includes/db.php';
 session_start();
 
 $message = "";
-$loginSuccess = false;
+$loginSuccess = false; 
 
 if (isset($_POST['login'])) {
     $email = mysqli_real_escape_string($conn, $_POST['email']);
@@ -20,7 +20,6 @@ if (isset($_POST['login'])) {
         if (password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['name'];
-
             $loginSuccess = true; 
         } else {
             $message = "❌ Wrong Password!";
@@ -36,247 +35,163 @@ if (isset($_POST['login'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | TravelBlog</title>
+    <title>Login | Explore The World</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        :root {
-            --primary: #6366f1;
-            --secondary: #a855f7;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
 
         body {
-            background: #0f172a;
+            background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), 
+                        url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1600&q=80');
+            background-size: cover;
+            background-position: center;
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
-            position: relative;
         }
 
-        /* Background Animated Circles */
-        body::before, body::after {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: -1;
-            animation: move 10s infinite alternate;
-        }
-        body::before {
-            background: rgba(99, 102, 241, 0.4);
-            top: -50px;
-            left: -50px;
-        }
-        body::after {
-            background: rgba(168, 85, 247, 0.3);
-            bottom: -50px;
-            right: -50px;
-        }
-
-        @keyframes move {
-            from { transform: translate(0, 0); }
-            to { transform: translate(50px, 100px); }
-        }
-
-        .container {
-            background: rgba(255, 255, 255, 0.05);
+        .login-card {
+            background: rgba(30, 41, 59, 0.8); /* Darker background for visibility */
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 40px;
-            border-radius: 28px;
-            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 45px 35px;
+            border-radius: 30px;
+            width: 90%;
             max-width: 400px;
             text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.8s ease-out;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            color: white;
+            animation: slideUp 0.8s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        h2 {
-            color: white;
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            letter-spacing: -1px;
-        }
+        h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
 
-        p.subtitle {
-            color: #94a3b8;
-            font-size: 0.9rem;
-            margin-bottom: 30px;
-        }
+        .subtitle { color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; margin-bottom: 35px; }
 
-        .input-group {
-            position: relative;
-            margin-bottom: 20px;
-            text-align: left;
-        }
+        .input-box { position: relative; margin-bottom: 20px; }
 
-        .input-group i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #64748b;
-            transition: 0.3s;
+        .input-box i {
+            position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+            color: #6366f1; /* Bright Blue/Indigo for icons */
+            font-size: 1.1rem;
         }
 
         input {
             width: 100%;
-            padding: 14px 15px 14px 45px;
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            color: white;
+            padding: 15px 15px 15px 52px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: #ffffff; /* Pure white text while typing */
             font-size: 1rem;
             outline: none;
-            transition: all 0.3s ease;
+            transition: 0.3s;
         }
+
+        /* FIX: Better visibility for placeholder */
+        input::placeholder { color: rgba(255, 255, 255, 0.75); }
 
         input:focus {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
-        }
-
-        input:focus + i {
-            color: var(--primary);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #6366f1;
         }
 
         button {
             width: 100%;
             padding: 15px;
-            border-radius: 14px;
+            border-radius: 15px;
             border: none;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, #6366f1, #a855f7);
             color: white;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.4s ease;
+            transition: 0.4s;
             margin-top: 10px;
-            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
         }
 
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 25px -5px rgba(99, 102, 241, 0.5);
-            filter: brightness(1.1);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(99, 102, 241, 0.4);
         }
 
-        button:active { transform: translateY(0); }
-
-        .error {
-            background: rgba(244, 63, 94, 0.1);
-            color: #fb7185;
-            padding: 10px;
-            border-radius: 10px;
+        .error-msg {
+            background: rgba(255, 77, 77, 0.2);
+            color: #ffb3b3;
+            padding: 12px;
+            border-radius: 12px;
             font-size: 0.85rem;
             margin-bottom: 20px;
-            border: 1px solid rgba(244, 63, 94, 0.2);
+            border: 1px solid rgba(255, 77, 77, 0.3);
         }
 
-        .links {
+        .footer-links {
             margin-top: 25px;
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .links a {
-            color: #94a3b8;
-            text-decoration: none;
+            justify-content: space-between;
             font-size: 0.85rem;
-            transition: 0.3s;
         }
 
-        .links a:hover {
-            color: white;
-        }
+        .footer-links a { color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: 0.3s; }
+        .footer-links a:hover { color: #6366f1; text-decoration: underline; }
 
-        /* Success Popup */
         #popup {
-            display: none;
-            position: fixed;
-            top: 30px;
-            right: 30px;
-            background: #10b981;
-            color: white;
-            padding: 16px 25px;
-            border-radius: 16px;
-            font-weight: 700;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            z-index: 9999;
-            animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: none; position: fixed; top: 25px; right: 25px;
+            background: #10b981; color: white; padding: 15px 25px;
+            border-radius: 12px; font-weight: 600; z-index: 1000;
+            animation: slideIn 0.5s ease-out;
         }
-
-        @keyframes slideIn {
-            from { transform: translateX(120%); }
-            to { transform: translateX(0); }
-        }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
     </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h2>Welcome Back</h2>
-    <p class="subtitle">Please enter your details to sign in.</p>
+    <div class="login-card">
+        <h2>Travel Login</h2>
+        <p class="subtitle">Start your journey today</p>
 
-    <?php if($message){ ?>
-        <div class="error"><?php echo $message; ?></div>
-    <?php } ?>
+        <?php if($message){ ?>
+            <div class="error-msg"><?php echo $message; ?></div>
+        <?php } ?>
 
-    <form method="POST">
-        <div class="input-group">
-            <input type="email" name="email" placeholder="Email Address" required>
-            <i class="fas fa-envelope"></i>
+        <form method="POST">
+            <div class="input-box">
+                <i class="fas fa-envelope"></i>
+                <input type="email" name="email" placeholder="Email Address" required>
+            </div>
+            <div class="input-box">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+            <button name="login">Sign In</button>
+        </form>
+
+        <div class="footer-links">
+            <a href="signup.php">Create Account</a>
+            <a href="forgot-password.php">Forgot Password?</a>
         </div>
-        <div class="input-group">
-            <input type="password" name="password" placeholder="Password" required>
-            <i class="fas fa-lock"></i>
-        </div>
-        <button name="login">Sign In</button>
-    </form>
-
-    <div class="links">
-        <a href="signup.php">Don't have an account? <span style="color: var(--primary); font-weight: 700;">Sign Up</span></a>
-        <a href="forgot-password.php">Forgot Password?</a>
     </div>
-</div>
 
-<div id="popup">
-    <i class="fas fa-check-circle" style="margin-right: 10px;"></i> Login Successful!
-</div>
+    <div id="popup"><i class="fas fa-check-circle"></i> &nbsp; Login Successful!</div>
 
-<script>
-<?php if($loginSuccess){ ?>
-    const popup = document.getElementById("popup");
-    popup.style.display = "block";
-
-    setTimeout(function(){
-        window.location.href = "index.php";
-    }, 2000);
-<?php } ?>
-</script>
+    <script>
+    <?php if($loginSuccess){ ?>
+        const popup = document.getElementById("popup");
+        popup.style.display = "block";
+        setTimeout(function(){ window.location.href = "index.php"; }, 2000);
+    <?php } ?>
+    </script>
 
 </body>
 </html>
