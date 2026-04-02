@@ -13,16 +13,54 @@ if(isset($_POST['submit'])){
     $title = mysqli_real_escape_string($conn, $_POST['title']);
     $desc = mysqli_real_escape_string($conn, $_POST['description']);
     $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
+    
+    // Ensure slug is unique
+    $original_slug = $slug;
+    $counter = 1;
+    while(mysqli_num_rows(mysqli_query($conn, "SELECT id FROM posts WHERE slug='$slug'")) > 0){
+        $slug = $original_slug . '-' . $counter;
+        $counter++;
+    }
 
-    $image = $_FILES['image']['name'];
-    $extension = pathinfo($image, PATHINFO_EXTENSION);
-    $new_name = time() . '.' . $extension; 
-    $tmp = $_FILES['image']['tmp_name'];
+    // Validate inputs
+    if(empty($title) || empty($desc)){
+        $message = "error: Please fill all required fields";
+    } elseif(strlen($desc) < 50){
+        $message = "error: Description must be at least 50 characters";
+    } elseif(!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK){
+        $message = "error: Please select an image to upload";
+    } else {
+        $image = $_FILES['image']['name'];
+        $extension = strtolower(pathinfo($image, PATHINFO_EXTENSION));
+        $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+        
+        if(!in_array($extension, $allowed_extensions)){
+            $message = "error: Only JPG, JPEG, PNG, and GIF files are allowed";
+        } elseif($_FILES['image']['size'] > 5000000){ // 5MB limit
+            $message = "error: Image size must be less than 5MB";
+        } else {
+            $new_name = time() . '.' . $extension; 
+            $tmp = $_FILES['image']['tmp_name'];
+            $upload_path = "uploads/" . $new_name;
 
-    if(move_uploaded_file($tmp, "uploads/".$new_name)){
-        mysqli_query($conn, "INSERT INTO posts (user_id, title, slug, description, image) 
-        VALUES ('$user_id', '$title', '$slug', '$desc', '$new_name')");
-        $message = "success";
+            // Check if uploads directory exists and is writable
+            if(!is_dir("uploads/") || !is_writable("uploads/")){
+                $message = "error: Upload directory is not accessible";
+            } elseif(move_uploaded_file($tmp, $upload_path)){
+                $query = "INSERT INTO posts (user_id, title, slug, description, image) 
+                         VALUES ('$user_id', '$title', '$slug', '$desc', '$new_name')";
+                
+                if(mysqli_query($conn, $query)){
+                    $message = "success";
+                } else {
+                    $message = "error: Failed to save post to database";
+                    // Delete uploaded file if DB insert fails
+                    unlink($upload_path);
+                }
+            } else {
+                $message = "error: Failed to upload image. Check file permissions.";
+            }
+        }
     }
 }
 ?>
@@ -53,6 +91,17 @@ if(isset($_POST['submit'])){
             overflow-x: hidden;
         }
 
+        /* Simple Nav */
+        .nav {
+            background: var(--card); border-bottom: 1px solid var(--border);
+            padding: 15px 5%; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .nav .logo { color: var(--text); font-size: 1.5rem; font-weight: 800; text-decoration: none; }
+        .nav .logo span { color: var(--primary); }
+        .nav a { color: var(--text); text-decoration: none; font-weight: 600; padding: 8px 16px; border-radius: 8px; transition: 0.3s; }
+        .nav a:hover { background: rgba(99,102,241,0.1); color: var(--primary); }
+
         /* Responsive Wrapper */
         .wrapper { display: flex; min-height: 100vh; flex-wrap: wrap; }
 
@@ -76,6 +125,16 @@ if(isset($_POST['submit'])){
         }
 
         input:focus, textarea:focus { border-color: var(--primary); outline: none; background: #fff; }
+
+        .char-counter {
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .char-counter.warning { color: #f59e0b; }
+        .char-counter.danger { color: #ef4444; }
 
         .upload-area {
             border: 2px dashed var(--primary); padding: 30px;
@@ -119,6 +178,12 @@ if(isset($_POST['submit'])){
             font-weight: 600; z-index: 1000; animation: slideIn 0.5s forwards;
         }
 
+        .error-msg {
+            position: fixed; top: 20px; right: 20px; background: #ef4444;
+            color: white; padding: 15px 30px; border-radius: 12px;
+            font-weight: 600; z-index: 1000; animation: slideIn 0.5s forwards;
+        }
+
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
         /* Mobile Adjustments */
@@ -132,9 +197,19 @@ if(isset($_POST['submit'])){
 </head>
 <body>
 
+    <nav class="nav">
+        <a href="index.php" class="logo"><i class="fas fa-map-marked-alt"></i> Travel<span>Blog</span></a>
+        <div>
+            <a href="index.php">Feed</a>
+            <a href="logout.php">Logout</a>
+        </div>
+    </nav>
+
 <?php if($message == "success"): ?>
     <div class="success-msg">🚀 Story Published Successfully!</div>
     <script>setTimeout(()=> window.location.href="index.php", 2000);</script>
+<?php elseif(strpos($message, "error:") === 0): ?>
+    <div class="error-msg"><?php echo str_replace("error:", "❌", $message); ?></div>
 <?php endif; ?>
 
 <div class="wrapper">
@@ -154,6 +229,7 @@ if(isset($_POST['submit'])){
             <div class="input-group">
                 <label>Story Details</label>
                 <textarea id="descInput" name="description" rows="6" placeholder="Start writing your adventure..." required></textarea>
+                <div class="char-counter" id="charCounter">0 / 1000 characters</div>
             </div>
 
             <div class="input-group">
@@ -189,15 +265,33 @@ if(isset($_POST['submit'])){
     const titleInput = document.getElementById('titleInput');
     const descInput = document.getElementById('descInput');
     const fileInput = document.getElementById('fileInput');
+    const charCounter = document.getElementById('charCounter');
+    const maxChars = 1000;
 
-    titleInput.addEventListener('input', (e) => {
-        document.getElementById('prevTitle').innerText = e.target.value || "Your Title Here";
+    // Live preview for title
+    titleInput.addEventListener('input', function() {
+        document.getElementById('prevTitle').textContent = this.value || 'Your Title Here';
     });
 
-    descInput.addEventListener('input', (e) => {
-        document.getElementById('prevDesc').innerText = e.target.value.substring(0, 150) + (e.target.value.length > 150 ? '...' : '') || "Your story preview...";
+    // Live preview for description with character counter
+    descInput.addEventListener('input', function() {
+        const count = this.value.length;
+        charCounter.textContent = `${count} / ${maxChars} characters`;
+
+        // Update preview
+        document.getElementById('prevDesc').textContent = this.value.substring(0, 150) + (this.value.length > 150 ? '...' : '') || 'Your story will start appearing here as you type. Make it inspiring!';
+
+        // Color coding
+        charCounter.classList.remove('warning', 'danger');
+        if (count > 800) {
+            charCounter.classList.add('warning');
+        }
+        if (count > 950) {
+            charCounter.classList.add('danger');
+        }
     });
 
+    // File upload preview
     fileInput.addEventListener('change', function() {
         const file = this.files[0];
         if (file) {

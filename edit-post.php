@@ -12,6 +12,11 @@ if (isset($_GET['id'])) {
     $query = "SELECT * FROM posts WHERE id = '$id'";
     $result = mysqli_query($conn, $query);
     $post = mysqli_fetch_assoc($result);
+
+    if (!$post || $post['user_id'] != $_SESSION['user_id']) {
+        header("Location: index.php");
+        exit();
+    }
 }
 
 // Update Logic (Same as before but with better feedback)

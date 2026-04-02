@@ -44,6 +44,17 @@ if (!$post) {
             overflow-x: hidden;
         }
 
+        /* Simple Nav */
+        .nav {
+            background: var(--glass); backdrop-filter: blur(10px);
+            padding: 15px 5%; display: flex; justify-content: space-between; align-items: center;
+            position: fixed; top: 0; width: 100%; z-index: 1000; border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        .nav .logo { color: var(--text); font-size: 1.5rem; font-weight: 800; text-decoration: none; }
+        .nav .logo span { color: var(--primary); }
+        .nav a { color: var(--text); text-decoration: none; font-weight: 600; padding: 8px 16px; border-radius: 8px; transition: 0.3s; }
+        .nav a:hover { background: rgba(99,102,241,0.1); color: var(--primary); }
+
         /* Hero Image Section */
         .post-hero {
             width: 100%; 
@@ -161,6 +172,15 @@ if (!$post) {
 </head>
 <body>
 
+    <nav class="nav">
+        <a href="index.php" class="logo"><i class="fas fa-map-marked-alt"></i> Travel<span>Blog</span></a>
+        <div>
+            <a href="index.php">Feed</a>
+            <a href="add-post.php">New Story</a>
+            <a href="logout.php">Logout</a>
+        </div>
+    </nav>
+
     <a href="index.php" class="back-btn"><i class="fas fa-chevron-left"></i></a>
 
     <header class="post-hero">
@@ -187,15 +207,53 @@ if (!$post) {
         <footer class="post-footer">
             <div class="share-btns">
                 <span style="font-weight: 800; font-size: 0.9rem; display: block; margin-bottom: 10px;">Share Story:</span>
-                <i class="fab fa-twitter" style="color: #1DA1F2;"></i>
-                <i class="fab fa-facebook" style="color: #4267B2;"></i>
-                <i class="fab fa-whatsapp" style="color: #25D366;"></i>
+                <i class="fab fa-twitter" style="color: #1DA1F2;" onclick="shareOnTwitter()" title="Share on Twitter"></i>
+                <i class="fab fa-facebook" style="color: #4267B2;" onclick="shareOnFacebook()" title="Share on Facebook"></i>
+                <i class="fab fa-whatsapp" style="color: #25D366;" onclick="shareOnWhatsApp()" title="Share on WhatsApp"></i>
+                <i class="fab fa-instagram" style="color: #E4405F;" onclick="shareOnInstagram()" title="Share on Instagram"></i>
+                <i class="fas fa-link" onclick="copyLink()" title="Copy Link"></i>
             </div>
             <button class="btn-print" onclick="window.print()">
                 <i class="fas fa-print"></i> Save PDF
             </button>
         </footer>
     </main>
+
+    <script>
+        const postTitle = "<?php echo addslashes($post['title']); ?>";
+        const postUrl = window.location.href;
+
+        function shareOnTwitter() {
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(postTitle)}&url=${encodeURIComponent(postUrl)}`;
+            window.open(url, '_blank', 'width=600,height=400');
+        }
+
+        function shareOnFacebook() {
+            const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`;
+            window.open(url, '_blank', 'width=600,height=400');
+        }
+
+        function shareOnWhatsApp() {
+            const url = `https://wa.me/?text=${encodeURIComponent(postTitle + ' ' + postUrl)}`;
+            window.open(url, '_blank');
+        }
+
+        function shareOnInstagram() {
+            // Instagram doesn't support direct sharing, so copy to clipboard
+            copyLink();
+            alert('Link copied! Share it on Instagram manually.');
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(postUrl).then(() => {
+                // Show temporary feedback
+                const linkIcon = document.querySelector('.fa-link');
+                const originalColor = linkIcon.style.color;
+                linkIcon.style.color = '#10b981';
+                setTimeout(() => linkIcon.style.color = originalColor, 1000);
+            });
+        }
+    </script>
 
 </body>
 </html>

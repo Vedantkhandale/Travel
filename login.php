@@ -43,6 +43,17 @@ if (isset($_POST['login'])) {
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
 
+        /* Simple Nav */
+        .nav {
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+            background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);
+            padding: 15px 5%; display: flex; justify-content: space-between; align-items: center;
+        }
+        .nav .logo { color: white; font-size: 1.5rem; font-weight: 800; text-decoration: none; }
+        .nav .logo span { color: #6366f1; }
+        .nav a { color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 600; }
+        .nav a:hover { color: white; }
+
         body {
             background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), 
                         url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1600&q=80');
@@ -52,6 +63,7 @@ if (isset($_POST['login'])) {
             display: flex;
             justify-content: center;
             align-items: center;
+            padding-top: 80px;
         }
 
         .login-card {
@@ -157,6 +169,11 @@ if (isset($_POST['login'])) {
 
 <body>
 
+    <nav class="nav">
+        <a href="index.php" class="logo"><i class="fas fa-map-marked-alt"></i> Travel<span>Blog</span></a>
+        <a href="signup.php">Sign Up</a>
+    </nav>
+
     <div class="login-card">
         <h2>Travel Login</h2>
         <p class="subtitle">Start your journey today</p>
@@ -185,12 +202,34 @@ if (isset($_POST['login'])) {
 
     <div id="popup"><i class="fas fa-check-circle"></i> &nbsp; Login Successful!</div>
 
+    <footer style="position: fixed; bottom: 0; width: 100%; text-align: center; padding: 10px; color: rgba(255,255,255,0.6); font-size: 0.8rem;">
+        &copy; 2026 TravelBlog. All rights reserved.
+    </footer>
+
     <script>
     <?php if($loginSuccess){ ?>
         const popup = document.getElementById("popup");
         popup.style.display = "block";
         setTimeout(function(){ window.location.href = "index.php"; }, 2000);
     <?php } ?>
+
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const email = document.querySelector('input[name="email"]').value.trim();
+        const password = document.querySelector('input[name="password"]').value;
+
+        if (!email.includes('@') || !email.includes('.')) {
+            alert('Please enter a valid email');
+            e.preventDefault();
+            return;
+        }
+
+        if (password.length < 1) {
+            alert('Please enter your password');
+            e.preventDefault();
+            return;
+        }
+    });
     </script>
 
 </body>
