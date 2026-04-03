@@ -182,10 +182,10 @@ $updateMessage = isset($_GET['updated']) && $_GET['updated'] == '1' ? "✅ Profi
                                 </button>
                             </div>
                             <div class="card-actions">
-                                <a href="post.php?slug=<?php echo htmlspecialchars($post['slug']); ?>" class="btn btn-ghost"><i class="fas fa-book-open" style="margin-right:6px;"></i>Read</a>
+                                <a href="post.php?slug=<?php echo htmlspecialchars($post['slug']); ?>" class="btn btn-ghost"><i class="fas fa-book-open"></i>Read</a>
                                 <?php if ($isOwner): ?>
-                                    <a href="edit-post.php?id=<?php echo $post['id']; ?>" class="btn btn-secondary"><i class="fas fa-edit" style="margin-right:6px;"></i>Edit</a>
-                                    <button onclick="deletePost(<?php echo $post['id']; ?>)" class="btn btn-secondary" style="background: var(--error);"><i class="fas fa-trash" style="margin-right:6px;"></i>Delete</button>
+                                    <a href="edit-post.php?id=<?php echo $post['id']; ?>" class="btn btn-secondary"><i class="fas fa-edit"></i>Edit</a>
+                                    <button onclick="deletePost(<?php echo $post['id']; ?>)" class="btn btn-secondary btn-danger"><i class="fas fa-trash"></i>Delete</button>
                                 <?php endif; ?>
                             </div>
                         </div>

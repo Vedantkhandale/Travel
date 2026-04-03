@@ -20,6 +20,10 @@
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     --gradient-primary: linear-gradient(135deg, var(--primary), var(--secondary));
     --gradient-accent: linear-gradient(135deg, var(--accent), var(--primary));
+    --gradient-secondary: linear-gradient(135deg, #dbeafe, #ede9fe);
+    --gradient-error: linear-gradient(135deg, #ef4444, #f97316);
+    --bg-main: var(--bg-light);
+    --bg-secondary: #eef2ff;
 }
 
 body.dark {
@@ -493,7 +497,7 @@ body.dark {
     margin: 0 auto;
 }
 
-.stat-item {
+.stats-grid .stat-item {
     text-align: center;
     padding: 30px 20px;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.55));
@@ -507,7 +511,7 @@ body.dark {
 }
 
 
-.stat-item::before {
+.stats-grid .stat-item::before {
     content: '';
     position: absolute;
     top: 0;
@@ -519,17 +523,17 @@ body.dark {
     transition: transform 0.3s ease;
 }
 
-.stat-item:hover::before {
+.stats-grid .stat-item:hover::before {
     transform: scaleX(1);
 }
 
-.stat-item:hover {
+.stats-grid .stat-item:hover {
     transform: translateY(-10px) scale(1.02);
     box-shadow: var(--shadow-xl);
     border-color: var(--primary);
 }
 
-.stat-number {
+.stats-grid .stat-number {
     font-size: 2.5rem;
     font-weight: 900;
     color: var(--primary);
@@ -544,7 +548,7 @@ body.dark {
     to { transform: translateY(0); opacity: 1; }
 }
 
-.stat-label {
+.stats-grid .stat-label {
     font-size: 1rem;
     color: var(--text-muted);
     font-weight: 600;
@@ -748,11 +752,61 @@ body.dark {
     font-weight: 800;
 }
 
+.explorer-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 26px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.explorer-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.explorer-controls label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.explorer-controls select {
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text-main);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 0.86rem;
+    outline: none;
+}
+
+.explorer-controls select:focus {
+    border-color: var(--primary);
+}
+
+.explorer-meta {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 40px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 360px));
+    gap: 32px;
     align-items: stretch;
+    justify-content: center;
 }
 
 .card {
@@ -769,6 +823,8 @@ body.dark {
     display: flex;
     flex-direction: column;
     height: 100%;
+    width: 100%;
+    max-width: 360px;
 }
 
 .card::before {
@@ -899,7 +955,7 @@ body.dark {
     justify-content: space-between;
     align-items: center;
     flex-wrap: nowrap;
-    gap: 12px;
+    gap: 10px;
     background: rgba(255, 255, 255, 0.35);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -913,16 +969,16 @@ body.dark {
 
 .stats {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     flex: 0 0 auto;
     align-items: center;
-    min-width: 120px;
+    min-width: 110px;
     white-space: nowrap;
 }
 
 .card-actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: nowrap;
     align-items: center;
     justify-content: flex-end;
@@ -932,18 +988,19 @@ body.dark {
 }
 
 .card-actions .btn {
-    padding: 8px 12px;
+    padding: 8px px;
     min-width: 0;
     text-align: center;
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
 }
 
 .card-actions .btn i {
-    margin-right: 5px;
-}
-
-.card-actions .btn + .btn {
-    margin-left: 6px;
+    margin-right: 0;
+    font-size: 0.9em;
 }
 
 .card-footer .stats {
@@ -957,7 +1014,7 @@ body.dark {
 
 @media (max-width: 768px) {
     .card-footer {
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
         gap: 8px;
         padding: 14px 16px;
     }
@@ -969,8 +1026,8 @@ body.dark {
     }
 
     .card-actions {
-        flex: 1 1 auto;
-        justify-content: flex-end;
+        flex: 1 0 100%;
+        justify-content: flex-start;
         gap: 6px;
         min-width: 0;
     }
@@ -983,20 +1040,15 @@ body.dark {
     }
 }
 
-@media (max-width: 768px) {
-    .card-footer {
-        white-space: nowrap;
-    }
-}
-
 .card-actions .btn {
-    padding: 8px 14px;
+    padding: 8px 10px;
     border-radius: 9px;
-    font-size: 0.9rem;
+    font-size: 0.82rem;
     font-weight: 600;
     text-decoration: none;
     border: 1px solid transparent;
     transition: var(--transition);
+    line-height: 1;
 }
 
 .card-actions .btn-ghost {
@@ -1017,6 +1069,21 @@ body.dark {
 
 .card-actions .btn-secondary:hover {
     opacity: 0.95;
+}
+
+.card-actions .btn-danger {
+    background: var(--error);
+    color: #fff;
+}
+
+.card-actions .btn-danger:hover {
+    opacity: 0.95;
+}
+
+.card-actions .save-btn.saved {
+    background: rgba(99, 102, 241, 0.14);
+    color: var(--primary);
+    border-color: rgba(99, 102, 241, 0.45);
 }
 
 .card-actions .btn.disabled,
@@ -1780,150 +1847,128 @@ body.dark {
     transform: translateY(0);
 }
 
-/* ADDING FILES OWN   */
-/* --- DHASU OVERRIDES (Bina purana code chhede) --- */
-
-/* 1. Hero Section Fix: Text ko background ke upar chamkane ke liye aur spacing sahi karne ke liye */
-.hero {
-    min-height: 70vh !important;
-    background-attachment: fixed !important; /* Parallax effect */
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    padding-top: 150px !important;
+.back-to-top {
+    position: fixed;
+    right: 20px;
+    bottom: 24px;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 12px;
+    background: var(--gradient-primary);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    z-index: 1200;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: var(--transition);
 }
 
-.hero h1, .hero h2 {
-    text-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
-    margin-bottom: 15px !important;
+.back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
 
-/* 2. Card Button Alignment Fix: Isse saare buttons ek line mein niche chipak jayenge */
-/* --- DHASU ALIGNMENT FIX --- */
-/* --- PREMIUM MODERN GLASS-UI CARDS --- */
-/* =============================================
-   THE "ANTI-BACKCHODI" ALIGNMENT ENGINE
-   ============================================= */
+.back-to-top:hover {
+    transform: translateY(-3px);
+}
 
-/* =============================================
-   THE FINAL "NO-BACKCHODI" CARD ALIGNMENT
-   ============================================= */
+@media (max-width: 768px) {
+    .explorer-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
 
-/* 1. Footer Container: Sabko ek line mein lock karne ke liye */
-/* =============================================
-   THE ULTIMATE "NO-BACKCHODI" CARD ALIGNMENT
-   ============================================= */
+    .explorer-controls {
+        width: 100%;
+    }
 
-/* 1. Footer Container: Proper Spacing and Alignment */
+    .explorer-controls label {
+        flex: 1 1 100%;
+        justify-content: space-between;
+    }
+
+    .explorer-controls select {
+        min-width: 160px;
+    }
+
+    .explorer-meta {
+        text-align: right;
+    }
+}
+/* extra  */
+/* 1. Grid setup for equal height rows */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+    gap: 25px;
+    align-items: stretch; /* Yeh saare cards ki height barabar rakhega */
+}
+
+/* 2. Card structure to support internal flex */
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Important: Card ko grid row ki poori height lene ke liye */
+    background: var(--card-bg);
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+/* 3. Card Body: Yeh flexible area hai jo footer ko niche dhakelega */
+.card-body {
+    padding: 25px;
+    flex: 1 1 auto; /* Yeh bachi hui saari jagah le lega */
+    display: flex;
+    flex-direction: column;
+}
+
+/* 4. Footer: Hamesha bottom par rahega */
 .card-footer {
-    margin-top: auto !important;
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important; 
-    justify-content: space-between !important; 
-    align-items: center !important;
-    padding: 18px 24px !important; /* Perfect Aju-Baju space */
-    background: rgba(255, 255, 255, 0.6) !important;
-    border-top: 1px solid var(--border) !important;
-    gap: 15px !important;
-    border-bottom-left-radius: 24px !important;
-    border-bottom-right-radius: 24px !important;
-    width: 100% !important; /* Full width fix */
-    box-sizing: border-box !important; /* Border ke andar rakhega sabko */
+    margin-top: auto; /* Magic line: Yeh footer ko bottom pe stick karega */
+    padding: 15px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px; /* Stats aur Buttons ke beech safe gap */
 }
 
-/* 2. LEFT SIDE: Like & Comment Pill Buttons */
+/* 5. Internal spacing for Stats and Buttons */
 .stats {
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
-    flex-shrink: 0 !important;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
-.stat-item {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    background: #f1f5f9 !important;
-    padding: 8px 14px !important;
-    border-radius: 50px !important; 
-    font-size: 0.85rem !important;
-    font-weight: 700 !important;
-    color: #475569 !important;
-    border: none !important;
-    transition: 0.2s ease !important;
-    cursor: pointer !important;
-}
-
-.stat-item.active {
-    background: #fee2e2 !important;
-    color: #ef4444 !important;
-}
-
-/* 3. RIGHT SIDE: Read & Edit Buttons */
 .card-actions {
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
-    flex-shrink: 0 !important;
-    justify-content: flex-end !important;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Buttons ke beech barabar spacing */
+    flex-shrink: 0;
 }
 
-/* Common style for Read/Edit */
-.card-actions .btn, 
-.card-actions a, 
-.card-actions button {
-    height: 40px !important;
-    padding: 0 16px !important; /* Thoda kam kiya taaki tight fit ho */
-    border-radius: 10px !important;
-    font-size: 0.85rem !important;
-    font-weight: 700 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    white-space: nowrap !important;
-    text-decoration: none !important;
-    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    cursor: pointer !important;
-    box-sizing: border-box !important;
+/* 6. Button consistency */
+.card-actions .btn {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* "Read" Button */
-.btn-ghost, .btn-read {
-    background: transparent !important;
-    border: 2px solid var(--primary) !important;
-    color: var(--primary) !important;
+/* Sirf Index page par Edit button hide hoga */
+.index-page .card-actions .btn-secondary, 
+.index-page .card-actions .btn[href*="edit"] { 
+    display: none !important; 
 }
 
-/* "Edit" Button (FORCE FIX: No Clipping) */
-.btn-secondary, .btn-edit {
-    background: var(--gradient-primary) !important;
-    color: white !important;
-    border: none !important;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2) !important;
-    margin-right: 0 !important; /* Extra margin hatao */
-}
-
-.btn-secondary:hover, .btn-edit:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3) !important;
-    opacity: 0.9 !important;
-}
-
-/* 4. Mobile Responsive Fix */
-@media (max-width: 600px) {
-    .card-footer {
-        padding: 12px 15px !important;
-        gap: 5px !important;
-    }
-    
-    .stats {
-        gap: 6px !important;
-    }
-    
-    .card-actions .btn, 
-    .card-actions a {
-        padding: 0 10px !important;
-        font-size: 0.75rem !important;
-    }
-}
+/* Profile page par Edit button apne aap dikhega (Default) */

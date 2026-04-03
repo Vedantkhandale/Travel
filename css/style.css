@@ -1,4 +1,4 @@
-* {
+/** {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -14,7 +14,7 @@ body {
 }
 
 /* Form Container */
-.container {
+/* .container {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(15px);
     padding: 30px;
@@ -22,20 +22,20 @@ body {
     width: 300px;
     color: white;
     text-align: center;
-}
+} */
 
 /* Input */
-input {
+/* input {
     width: 100%;
     padding: 10px;
     margin: 10px 0;
     border: none;
     border-radius: 8px;
     outline: none;
-}
+} */
 
 /* Button */
-button {
+/* button {
     width: 100%;
     padding: 10px;
     border: none;
@@ -44,13 +44,13 @@ button {
     color: white;
     cursor: pointer;
     transition: 0.3s;
-}
-
+} */
+/* 
 button:hover {
     background: #ff4f8b;
-}
+} */
  /* index.php code  */
-        :root {
+        /* :root {
             --primary: #6366f1;
             --secondary: #a855f7;
             --bg-light: #f8fafc;
@@ -79,10 +79,10 @@ button:hover {
             line-height: 1.6;
             transition: background 0.3s ease;
             overflow-x: hidden;
-        }
+        } */
 
         /* --- Enhanced Navbar --- */
-        .navbar {
+        /* .navbar {
             background: var(--nav-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -161,10 +161,10 @@ button:hover {
         .btn-post:hover {
             transform: scale(1.05) translateY(-2px);
             box-shadow: 0 12px 20px rgba(99, 102, 241, 0.4);
-        }
+        } */
 
         /* --- Ultra Heroic Section --- */
-        .hero {
+        /* .hero {
             padding: 130px 20px 80px;
             text-align: center;
             position: relative;
@@ -246,10 +246,10 @@ button:hover {
             border-color: var(--primary);
             transform: scale(1.02) translateY(-5px);
             box-shadow: 0 40px 70px -15px rgba(99, 102, 241, 0.2);
-        }
+        } */
 
         /* --- Premium Slider --- */
-        .slider-section {
+        /* .slider-section {
             max-width: 1200px;
             margin: 0 auto 80px;
             padding: 0 20px;
@@ -299,10 +299,10 @@ button:hover {
             100% {
                 transform: translateX(0);
             }
-        }
+        } */
 
         /* --- Advanced Grid & Cards --- */
-        .container {
+        /* .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px 100px;
@@ -426,10 +426,10 @@ button:hover {
 
         .stat-item.active {
             color: #f43f5e !important;
-        }
+        } */
 
         /* --- Theme Button --- */
-        .theme-btn {
+        /* .theme-btn {
             width: 45px;
             height: 45px;
             border-radius: 14px;
@@ -445,10 +445,10 @@ button:hover {
             background: var(--primary);
             color: white;
             transform: rotate(15deg);
-        }
+        } */
 
         /* --- Footer --- */
-        .main-footer {
+        /* .main-footer {
             background: var(--card-bg);
             padding: 100px 8% 50px;
             border-top: 1px solid var(--border);
@@ -505,5 +505,5 @@ button:hover {
             .hero h1 {
                 font-size: 2.8rem;
             }
-        }
+        } */
    

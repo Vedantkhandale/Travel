@@ -1,148 +1,359 @@
-// TravelBlog - Index Page JavaScript
-// Smooth Scroll Navbar
-window.onscroll = () => {
-    const nav = document.getElementById('mainNav');
-    if (window.scrollY > 50) nav.classList.add('scrolled');
-    else nav.classList.remove('scrolled');
+// TravelBlog - Shared scripts for index/profile pages
+
+const SAVED_POSTS_KEY = 'travelBlogSavedPosts';
+const explorerState = {
+    query: '',
+    sort: 'newest',
+    filter: 'all'
 };
 
-// Mobile Menu Toggle logic
-const menuToggle = document.getElementById('mobile-menu');
-const navLinks = document.getElementById('navLinks');
-
-menuToggle.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
-    const icon = menuToggle.querySelector('i');
-    icon.classList.toggle('fa-bars');
-    icon.classList.toggle('fa-times');
-});
-
+// Keep theme toggle global because HTML uses onclick="toggleTheme()".
 function toggleTheme() {
     const body = document.body;
-    body.classList.toggle("dark");
-    const isDark = body.classList.contains("dark");
-    document.querySelector("#themeBtn i").className = isDark ? "fas fa-sun" : "fas fa-moon";
-    document.cookie = "theme=" + (isDark ? "dark" : "light") + ";path=/";
+    body.classList.toggle('dark');
+    const isDark = body.classList.contains('dark');
+    const icon = document.querySelector('#themeBtn i');
+    if (icon) {
+        icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    }
+    document.cookie = 'theme=' + (isDark ? 'dark' : 'light') + ';path=/';
 }
 
-function toggleLike(el) {
-    el.classList.toggle("active");
-    const icon = el.querySelector("i");
-    if (el.classList.contains("active")) {
-        icon.className = "fas fa-heart";
-    } else {
-        icon.className = "far fa-heart";
+function toastNotification(message) {
+    const notif = document.createElement('div');
+    notif.className = 'toast-message';
+    notif.textContent = message;
+    document.body.appendChild(notif);
+
+    setTimeout(() => notif.classList.add('visible'), 20);
+    setTimeout(() => {
+        notif.classList.remove('visible');
+        setTimeout(() => notif.remove(), 300);
+    }, 2200);
+}
+
+function showTooltip(element, text) {
+    if (!element) return;
+
+    const tip = document.createElement('div');
+    tip.className = 'tooltip-tip';
+    tip.textContent = text;
+    document.body.appendChild(tip);
+
+    const rect = element.getBoundingClientRect();
+    tip.style.left = rect.left + rect.width / 2 - tip.offsetWidth / 2 + 'px';
+    tip.style.top = rect.top - tip.offsetHeight - 8 + window.scrollY + 'px';
+
+    setTimeout(() => tip.classList.add('visible'), 20);
+    setTimeout(() => {
+        tip.classList.remove('visible');
+        setTimeout(() => tip.remove(), 220);
+    }, 1200);
+}
+
+function setupNavbarAndMenu() {
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('mainNav');
+        if (!nav) return;
+        if (window.scrollY > 50) {
+            nav.classList.add('scrolled');
+        } else {
+            nav.classList.remove('scrolled');
+        }
+    });
+
+    const menuToggle = document.getElementById('mobile-menu');
+    const navLinks = document.getElementById('navLinks');
+    if (!menuToggle || !navLinks) return;
+
+    menuToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        const icon = menuToggle.querySelector('i');
+        if (icon) {
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-times');
+        }
+    });
+}
+
+function filterCards(query) {
+    explorerState.query = (query || '').toLowerCase();
+    applyExplorerState();
+}
+
+function setupSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+
+    let searchTimeout;
+    searchInput.addEventListener('input', function onSearchInput() {
+        clearTimeout(searchTimeout);
+        const value = this.value || '';
+        searchTimeout = setTimeout(() => filterCards(value), 200);
+    });
+}
+
+function getSavedPosts() {
+    return JSON.parse(localStorage.getItem(SAVED_POSTS_KEY) || '{}');
+}
+
+function savePostState(map) {
+    localStorage.setItem(SAVED_POSTS_KEY, JSON.stringify(map));
+}
+
+function updateSaveButtonState(btn, isSaved) {
+    const icon = btn.querySelector('i');
+    if (icon) {
+        icon.className = isSaved ? 'fas fa-bookmark' : 'far fa-bookmark';
+    }
+    btn.classList.toggle('saved', isSaved);
+    btn.setAttribute('aria-pressed', isSaved ? 'true' : 'false');
+}
+
+function setupSaveButtons() {
+    const savedMap = getSavedPosts();
+
+    document.querySelectorAll('.save-btn').forEach((btn) => {
+        const postId = btn.getAttribute('data-post-id');
+        if (!postId) return;
+
+        updateSaveButtonState(btn, !!savedMap[postId]);
+
+        if (btn.dataset.bound === '1') return;
+        btn.dataset.bound = '1';
+
+        btn.addEventListener('click', () => {
+            const map = getSavedPosts();
+            const next = !map[postId];
+            if (next) {
+                map[postId] = 1;
+            } else {
+                delete map[postId];
+            }
+            savePostState(map);
+            updateSaveButtonState(btn, next);
+            toastNotification(next ? 'Story saved' : 'Story removed from saved');
+            applyExplorerState();
+        });
+    });
+}
+
+function applyExplorerState() {
+    const cards = Array.from(document.querySelectorAll('#postsGrid .card'));
+    const grid = document.getElementById('postsGrid');
+    if (!grid || cards.length === 0) return;
+
+    const savedMap = getSavedPosts();
+    const query = explorerState.query;
+
+    cards.forEach((card) => {
+        const title = (card.getAttribute('data-title') || '').toLowerCase();
+        const description = (card.getAttribute('data-description') || '').toLowerCase();
+        const author = (card.getAttribute('data-author') || '').toLowerCase();
+        const postId = card.getAttribute('data-post-id') || '';
+        const hasImage = card.getAttribute('data-has-image') === '1';
+        const isSaved = !!savedMap[postId];
+
+        const matchesSearch = !query || title.includes(query) || description.includes(query) || author.includes(query);
+        const matchesFilter =
+            explorerState.filter === 'all' ||
+            (explorerState.filter === 'with-image' && hasImage) ||
+            (explorerState.filter === 'saved' && isSaved);
+
+        if (matchesSearch && matchesFilter) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+
+    cards.sort((a, b) => {
+        if (explorerState.sort === 'title-asc') {
+            return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
+        }
+        if (explorerState.sort === 'title-desc') {
+            return (b.getAttribute('data-title') || '').localeCompare(a.getAttribute('data-title') || '');
+        }
+
+        const aIndex = parseInt(a.dataset.originalIndex || '0', 10);
+        const bIndex = parseInt(b.dataset.originalIndex || '0', 10);
+        return aIndex - bIndex;
+    });
+
+    cards.forEach((card) => grid.appendChild(card));
+
+    const visibleCount = cards.filter((card) => !card.classList.contains('hidden')).length;
+    const resultsCount = document.getElementById('resultsCount');
+    if (resultsCount) {
+        resultsCount.textContent = visibleCount + (visibleCount === 1 ? ' story' : ' stories');
     }
 }
 
-document.getElementById("searchInput").addEventListener("input", function() {
-    const query = this.value.toLowerCase();
-    document.querySelectorAll(".card").forEach(card => {
-        const title = card.getAttribute("data-title") || "";
-        const description = card.getAttribute("data-description") || "";
-        if (title.includes(query) || description.includes(query)) {
-            card.classList.remove("hidden");
-        } else {
-            card.classList.add("hidden");
-        }
-    });
-});
+function setupExplorerControls() {
+    const sortSelect = document.getElementById('sortPosts');
+    const filterSelect = document.getElementById('filterPosts');
 
-// Dynamic Stats Simulation
+    if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+            explorerState.sort = sortSelect.value;
+            applyExplorerState();
+        });
+    }
+
+    if (filterSelect) {
+        filterSelect.addEventListener('change', () => {
+            explorerState.filter = filterSelect.value;
+            applyExplorerState();
+        });
+    }
+}
+
+function setupBackToTop() {
+    const backToTop = document.getElementById('backToTop');
+    if (!backToTop) return;
+
+    const updateVisibility = () => {
+        if (window.scrollY > 320) {
+            backToTop.classList.add('visible');
+        } else {
+            backToTop.classList.remove('visible');
+        }
+    };
+
+    updateVisibility();
+    window.addEventListener('scroll', updateVisibility);
+
+    backToTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}
+
+function animateNumber(element, target) {
+    const current = parseInt((element.textContent || '0').replace(',', ''), 10);
+    if (Number.isNaN(current) || current === target) return;
+
+    const increment = target > current ? 1 : -1;
+    const timer = setInterval(() => {
+        const now = parseInt((element.textContent || '0').replace(',', ''), 10);
+        const next = now + increment;
+        element.textContent = next.toLocaleString();
+        if (next === target) clearInterval(timer);
+    }, 50);
+}
+
 function updateStats() {
     const onlineUsers = document.getElementById('onlineUsers');
     const totalPosts = document.getElementById('totalPosts');
     const destinations = document.getElementById('destinations');
     const communities = document.getElementById('communities');
 
-    // Simulate real-time changes
-    let currentOnline = parseInt(onlineUsers.textContent.replace(',', ''));
-    let currentPosts = parseInt(totalPosts.textContent.replace(',', ''));
-    let currentDest = parseInt(destinations.textContent);
-    let currentComm = parseInt(communities.textContent);
+    if (!onlineUsers || !totalPosts || !destinations || !communities) return;
 
-    // Random fluctuations
-    currentOnline += Math.floor(Math.random() * 11) - 5; // -5 to +5
-    currentPosts += Math.floor(Math.random() * 3) - 1; // -1 to +1
+    let currentOnline = parseInt((onlineUsers.textContent || '0').replace(',', ''), 10);
+    let currentPosts = parseInt((totalPosts.textContent || '0').replace(',', ''), 10);
+    let currentDest = parseInt(destinations.textContent || '0', 10);
+    let currentComm = parseInt(communities.textContent || '0', 10);
+
+    if ([currentOnline, currentPosts, currentDest, currentComm].some(Number.isNaN)) return;
+
+    currentOnline += Math.floor(Math.random() * 11) - 5;
+    currentPosts += Math.floor(Math.random() * 3) - 1;
     currentDest += Math.floor(Math.random() * 3) - 1;
     currentComm += Math.floor(Math.random() * 5) - 2;
 
-    // Keep within reasonable bounds
     currentOnline = Math.max(200, Math.min(300, currentOnline));
     currentPosts = Math.max(1200, Math.min(1300, currentPosts));
     currentDest = Math.max(80, Math.min(100, currentDest));
     currentComm = Math.max(140, Math.min(170, currentComm));
 
-    // Update display with animation
     animateNumber(onlineUsers, currentOnline);
     animateNumber(totalPosts, currentPosts);
     animateNumber(destinations, currentDest);
     animateNumber(communities, currentComm);
 }
 
-function animateNumber(element, target) {
-    const current = parseInt(element.textContent.replace(',', ''));
-    const increment = target > current ? 1 : -1;
-    const timer = setInterval(() => {
-        const newValue = parseInt(element.textContent.replace(',', '')) + increment;
-        element.textContent = newValue.toLocaleString();
-        if (newValue === target) clearInterval(timer);
-    }, 50);
-}
-
-// Update stats every 30 seconds
-setInterval(updateStats, 30000);
-
-// Floating Notifications
-const notifications = [
-    { user: "Sarah", action: "shared a new adventure in Bali", time: "2 min ago" },
-    { user: "Mike", action: "liked your Tokyo story", time: "5 min ago" },
-    { user: "Emma", action: "commented on your Paris post", time: "8 min ago" },
-    { user: "Alex", action: "started following you", time: "12 min ago" },
-    { user: "Lisa", action: "shared your Iceland guide", time: "15 min ago" }
-];
-
-function showRandomNotification() {
+function setupNotifications() {
     const container = document.getElementById('notificationContainer');
-    const randomNotif = notifications[Math.floor(Math.random() * notifications.length)];
+    if (!container) return;
 
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.innerHTML = `
-        <div class="notification-header">
-            <div class="notification-avatar">${randomNotif.user.charAt(0)}</div>
-            <strong>${randomNotif.user}</strong>
-        </div>
-        <div class="notification-content">${randomNotif.action}</div>
-        <div class="notification-time">${randomNotif.time}</div>
-    `;
+    const notifications = [
+        { user: 'Sarah', action: 'shared a new adventure in Bali', time: '2 min ago' },
+        { user: 'Mike', action: 'liked your Tokyo story', time: '5 min ago' },
+        { user: 'Emma', action: 'commented on your Paris post', time: '8 min ago' },
+        { user: 'Alex', action: 'started following you', time: '12 min ago' },
+        { user: 'Lisa', action: 'shared your Iceland guide', time: '15 min ago' }
+    ];
 
-    container.appendChild(notification);
+    function showRandomNotification() {
+        const randomNotif = notifications[Math.floor(Math.random() * notifications.length)];
 
-    // Show notification
-    setTimeout(() => notification.classList.add('show'), 100);
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.innerHTML = `
+            <div class="notification-header">
+                <div class="notification-avatar">${randomNotif.user.charAt(0)}</div>
+                <strong>${randomNotif.user}</strong>
+            </div>
+            <div class="notification-content">${randomNotif.action}</div>
+            <div class="notification-time">${randomNotif.time}</div>
+        `;
 
-    // Hide and remove after 5 seconds
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 500);
-    }, 5000);
+        container.appendChild(notification);
+        setTimeout(() => notification.classList.add('show'), 60);
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 4500);
+    }
+
+    function scheduleNotification() {
+        const delay = Math.random() * 45000 + 45000;
+        setTimeout(() => {
+            showRandomNotification();
+            scheduleNotification();
+        }, delay);
+    }
+
+    setTimeout(scheduleNotification, 9000);
 }
 
-// Show notifications randomly every 45-90 seconds
-function scheduleNotification() {
-    const delay = Math.random() * 45000 + 45000; // 45-90 seconds
-    setTimeout(() => {
-        showRandomNotification();
-        scheduleNotification();
-    }, delay);
+function hydrateSavedCardStats() {
+    const likes = JSON.parse(localStorage.getItem('travelBlogLikeStats') || '{}');
+    const comments = JSON.parse(localStorage.getItem('travelBlogCommentStats') || '{}');
+
+    document.querySelectorAll('.card').forEach((card) => {
+        const postId = card.getAttribute('data-post-id');
+        if (!postId) return;
+
+        const likeBtn = card.querySelector('.like-btn');
+        const commentBtn = card.querySelector('.comment-btn');
+
+        if (likeBtn && likes[postId] !== undefined) {
+            const countEl = likeBtn.querySelector('.like-count');
+            if (countEl) {
+                countEl.textContent = likes[postId];
+            }
+            if (parseInt(likes[postId], 10) > 0) {
+                likeBtn.classList.add('active');
+                const icon = likeBtn.querySelector('i');
+                if (icon) icon.className = 'fas fa-heart';
+            }
+        }
+
+        if (commentBtn && comments[postId] !== undefined) {
+            const countEl = commentBtn.querySelector('.comment-count');
+            if (countEl) {
+                countEl.textContent = comments[postId];
+            }
+        }
+    });
 }
 
-// Start notifications after page load
-setTimeout(scheduleNotification, 10000);
+function setupCardButtons() {
+    document.querySelectorAll('.like-btn').forEach((btn) => {
+        if (btn.dataset.bound === '1') return;
+        btn.dataset.bound = '1';
 
-function handleCardButtons() {
-    document.querySelectorAll('.like-btn').forEach(btn => {
         btn.addEventListener('click', (event) => {
             event.preventDefault();
             const postId = btn.getAttribute('data-post-id');
@@ -150,7 +361,10 @@ function handleCardButtons() {
 
             const icon = btn.querySelector('i');
             const countEl = btn.querySelector('.like-count');
-            let count = parseInt(countEl.textContent) || 0;
+            if (!icon || !countEl) return;
+
+            let count = parseInt(countEl.textContent || '0', 10);
+            if (Number.isNaN(count)) count = 0;
 
             if (btn.classList.contains('active')) {
                 btn.classList.remove('active');
@@ -163,7 +377,6 @@ function handleCardButtons() {
             }
 
             countEl.textContent = count;
-            // localStorage state saving optional
             const stats = JSON.parse(localStorage.getItem('travelBlogLikeStats') || '{}');
             stats[postId] = count;
             localStorage.setItem('travelBlogLikeStats', JSON.stringify(stats));
@@ -171,73 +384,53 @@ function handleCardButtons() {
         });
     });
 
-    document.querySelectorAll('.comment-btn').forEach(btn => {
+    document.querySelectorAll('.comment-btn').forEach((btn) => {
+        if (btn.dataset.bound === '1') return;
+        btn.dataset.bound = '1';
+
         btn.addEventListener('click', (event) => {
             event.preventDefault();
             const postId = btn.getAttribute('data-post-id');
             if (!postId) return;
 
-            const comment = prompt('Add a quick comment:', 'Amazing experience! 🌟');
+            const comment = prompt('Add a quick comment:', 'Amazing experience!');
             if (!comment || !comment.trim()) return;
 
             const countEl = btn.querySelector('.comment-count');
-            let count = parseInt(countEl.textContent) || 0;
+            if (!countEl) return;
+
+            let count = parseInt(countEl.textContent || '0', 10);
+            if (Number.isNaN(count)) count = 0;
             count += 1;
             countEl.textContent = count;
 
             const comments = JSON.parse(localStorage.getItem('travelBlogCommentStats') || '{}');
             comments[postId] = count;
             localStorage.setItem('travelBlogCommentStats', JSON.stringify(comments));
+
             showTooltip(btn, 'Comment added');
             toastNotification('Comment: ' + comment.trim().slice(0, 60));
         });
     });
 }
 
-function hydrateSavedCardStats() {
-    const likes = JSON.parse(localStorage.getItem('travelBlogLikeStats') || '{}');
-    const comments = JSON.parse(localStorage.getItem('travelBlogCommentStats') || '{}');
-
-    document.querySelectorAll('.card').forEach(card => {
-        const postId = card.getAttribute('data-post-id');
-        if (!postId) return;
-
-        if (likes[postId] !== undefined) {
-            const likeBtn = card.querySelector('.like-btn');
-            const countEl = likeBtn.querySelector('.like-count');
-            countEl.textContent = likes[postId];
-            if (likes[postId] > 0) {
-                likeBtn.classList.add('active');
-                likeBtn.querySelector('i').className = 'fas fa-heart';
-            }
-        }
-
-        if (comments[postId] !== undefined) {
-            const commentBtn = card.querySelector('.comment-btn');
-            const countEl = commentBtn.querySelector('.comment-count');
-            countEl.textContent = comments[postId];
-        }
-    });
-}
-
-// Recent Activity Feed
-const activities = [
-    { user: "Sarah", action: "shared a new adventure", location: "Bali", time: "2 minutes ago" },
-    { user: "Mike", action: "discovered hidden gems in", location: "Tokyo", time: "5 minutes ago" },
-    { user: "Emma", action: "posted amazing photos from", location: "Paris", time: "8 minutes ago" },
-    { user: "Alex", action: "started exploring", location: "New York", time: "12 minutes ago" },
-    { user: "Lisa", action: "shared food adventures in", location: "Thailand", time: "15 minutes ago" },
-    { user: "David", action: "captured sunset views in", location: "Santorini", time: "18 minutes ago" },
-    { user: "Anna", action: "found the best cafes in", location: "Barcelona", time: "22 minutes ago" },
-    { user: "John", action: "hiked through mountains in", location: "Switzerland", time: "25 minutes ago" }
-];
-
 function populateActivityFeed() {
     const feed = document.getElementById('activityFeed');
-    const shuffled = activities.sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 6);
+    if (!feed) return;
 
-    selected.forEach(activity => {
+    const activities = [
+        { user: 'Sarah', action: 'shared a new adventure', location: 'Bali', time: '2 minutes ago' },
+        { user: 'Mike', action: 'discovered hidden gems in', location: 'Tokyo', time: '5 minutes ago' },
+        { user: 'Emma', action: 'posted amazing photos from', location: 'Paris', time: '8 minutes ago' },
+        { user: 'Alex', action: 'started exploring', location: 'New York', time: '12 minutes ago' },
+        { user: 'Lisa', action: 'shared food adventures in', location: 'Thailand', time: '15 minutes ago' },
+        { user: 'David', action: 'captured sunset views in', location: 'Santorini', time: '18 minutes ago' }
+    ];
+
+    const selected = activities.sort(() => 0.5 - Math.random()).slice(0, 6);
+    feed.innerHTML = '';
+
+    selected.forEach((activity) => {
         const item = document.createElement('div');
         item.className = 'activity-item';
         item.innerHTML = `
@@ -253,56 +446,27 @@ function populateActivityFeed() {
     });
 }
 
-// Update activity times
 function updateActivityTimes() {
-    const timeElements = document.querySelectorAll('.activity-time');
-    timeElements.forEach(el => {
-        const currentTime = el.textContent;
-        const minutes = parseInt(currentTime.split(' ')[0]);
-        el.textContent = `${minutes + 1} minutes ago`;
+    document.querySelectorAll('.activity-time').forEach((el) => {
+        const current = el.textContent || '';
+        const minutes = parseInt(current.split(' ')[0], 10);
+        if (!Number.isNaN(minutes)) {
+            el.textContent = (minutes + 1) + ' minutes ago';
+        }
     });
 }
 
-// Update activity feed every 60 seconds
-setInterval(updateActivityTimes, 60000);
-
-window.onload = () => {
-    populateActivityFeed();
-    if (document.body.classList.contains("dark")) {
-        document.querySelector("#themeBtn i").className = "fas fa-sun";
-    }
-    hydrateSavedCardStats();
-    handleCardButtons();
-}
-
-function deletePost(postId) {
-    const card = document.getElementById('post-' + postId);
-    if (confirm("Are you sure? This memory will be gone forever! 🏝️")) {
-        // Red glow effect before vanishing
-        card.style.border = "2px solid #f43f5e";
-        card.style.boxShadow = "0 0 20px rgba(244, 63, 94, 0.2)";
-
-        fetch('delete-post.php?id=' + postId)
-            .then(res => {
-                card.classList.add('fade-out-card');
-                setTimeout(() => card.remove(), 500);
-            })
-            .catch(err => alert("Kucch galat hua!"));
-    }
-}
-
-// --- Loading Animation ---
 function hideLoadingOverlay() {
     const overlay = document.querySelector('.loading-overlay');
-    if (overlay) {
-        overlay.classList.add('hidden');
-        setTimeout(() => overlay.remove(), 500);
-    }
+    if (!overlay) return;
+
+    overlay.classList.add('hidden');
+    setTimeout(() => {
+        if (overlay.parentNode) overlay.remove();
+    }, 450);
 }
 
-// Show loading overlay on page load
-document.addEventListener('DOMContentLoaded', () => {
-    // Create loading overlay
+function setupLoadingOverlay() {
     const overlay = document.createElement('div');
     overlay.className = 'loading-overlay';
     overlay.innerHTML = `
@@ -313,67 +477,44 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.body.appendChild(overlay);
 
-    // Hide loading after 2 seconds or when page is fully loaded
-    setTimeout(hideLoadingOverlay, 2000);
+    setTimeout(hideLoadingOverlay, 1500);
     window.addEventListener('load', hideLoadingOverlay);
-});
+}
 
-// --- Scroll Animations ---
 function handleScrollAnimations() {
     const elements = document.querySelectorAll('.fade-in, .slide-in-left, .slide-in-right, .scale-in');
-
-    elements.forEach(element => {
+    elements.forEach((element) => {
         const rect = element.getBoundingClientRect();
-        const isVisible = rect.top < window.innerHeight - 100;
-
-        if (isVisible) {
+        if (rect.top < window.innerHeight - 100) {
             element.classList.add('visible');
         }
     });
 }
 
-// Throttle scroll events for better performance
 let scrollTimeout;
 function throttledScrollHandler() {
-    if (!scrollTimeout) {
-        scrollTimeout = setTimeout(() => {
-            handleScrollAnimations();
-            scrollTimeout = null;
-        }, 16); // ~60fps
-    }
+    if (scrollTimeout) return;
+
+    scrollTimeout = setTimeout(() => {
+        handleScrollAnimations();
+        scrollTimeout = null;
+    }, 16);
 }
 
-window.addEventListener('scroll', throttledScrollHandler);
-window.addEventListener('load', handleScrollAnimations);
-
-// --- Enhanced Button Interactions ---
 function addButtonEffects() {
-    // Add pulse effect to primary buttons
-    const primaryButtons = document.querySelectorAll('.btn-primary, .btn-cta');
-    primaryButtons.forEach(btn => {
-        if (!btn.classList.contains('btn-pulse')) {
-            btn.classList.add('btn-pulse');
-        }
-    });
-
-    // Add hover lift effect to cards and other elements
-    const liftElements = document.querySelectorAll('.card, .category-card, .social-btn');
-    liftElements.forEach(el => {
+    document.querySelectorAll('.card, .category-card, .social-btn').forEach((el) => {
         if (!el.classList.contains('hover-lift')) {
             el.classList.add('hover-lift');
         }
     });
 
-    // Add text glow effect to headings
-    const headings = document.querySelectorAll('h1, h2, h3');
-    headings.forEach(heading => {
+    document.querySelectorAll('h1, h2, h3').forEach((heading) => {
         if (!heading.classList.contains('text-glow')) {
             heading.classList.add('text-glow');
         }
     });
 }
 
-// --- Typing Animation for Hero ---
 function initTypingAnimation() {
     const typingElement = document.querySelector('.typing-text');
     if (!typingElement) return;
@@ -386,49 +527,65 @@ function initTypingAnimation() {
     const typeWriter = () => {
         if (i < text.length) {
             typingElement.textContent += text.charAt(i);
-            i++;
+            i += 1;
             setTimeout(typeWriter, 100);
         } else {
             typingElement.style.borderRight = 'none';
         }
     };
 
-    setTimeout(typeWriter, 1000);
+    setTimeout(typeWriter, 900);
 }
 
-// --- Enhanced Search with Debouncing ---
-let searchTimeout;
-document.getElementById("searchInput").addEventListener("input", function() {
-    clearTimeout(searchTimeout);
-    const query = this.value.toLowerCase();
+function deletePost(postId) {
+    const card = document.getElementById('post-' + postId);
+    if (!card) return;
 
-    searchTimeout = setTimeout(() => {
-        document.querySelectorAll(".card").forEach(card => {
-            const title = card.getAttribute("data-title") || "";
-            const description = card.getAttribute("data-description") || "";
-            if (title.includes(query) || description.includes(query)) {
-                card.classList.remove("hidden");
-                // Add fade-in animation for search results
-                card.style.animation = 'none';
-                setTimeout(() => card.style.animation = 'fadeIn 0.5s ease', 10);
-            } else {
-                card.classList.add("hidden");
-            }
-        });
-    }, 300); // Debounce for 300ms
-});
+    if (!confirm('Are you sure? This memory will be gone forever!')) return;
 
-// --- Initialize Everything ---
+    card.style.border = '2px solid #f43f5e';
+    card.style.boxShadow = '0 0 20px rgba(244, 63, 94, 0.2)';
+
+    fetch('delete-post.php?id=' + postId)
+        .then(() => {
+            card.classList.add('fade-out-card');
+            setTimeout(() => card.remove(), 500);
+        })
+        .catch(() => alert('Something went wrong while deleting post.'));
+}
+
+window.deletePost = deletePost;
+
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('#postsGrid .card').forEach((card, index) => {
+        card.dataset.originalIndex = String(index);
+    });
+
+    setupNavbarAndMenu();
+    setupSearch();
+    setupExplorerControls();
+    setupSaveButtons();
+    setupNotifications();
+    setupCardButtons();
+    hydrateSavedCardStats();
+    populateActivityFeed();
+    setupBackToTop();
+
+    updateStats();
+    setInterval(updateStats, 30000);
+    setInterval(updateActivityTimes, 60000);
+
+    if (document.body.classList.contains('dark')) {
+        const icon = document.querySelector('#themeBtn i');
+        if (icon) icon.className = 'fas fa-sun';
+    }
+
+    setupLoadingOverlay();
     addButtonEffects();
     initTypingAnimation();
     handleScrollAnimations();
+    applyExplorerState();
 });
-document.querySelectorAll('.like-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        let count = this.querySelector('.like-count');
-        count.innerText = parseInt(count.innerText) + 1;
-        this.classList.toggle('active');
-        this.style.color = "#ef4444"; // Red heart on click
-    });
-});
+
+window.addEventListener('scroll', throttledScrollHandler);
+window.addEventListener('load', handleScrollAnimations);

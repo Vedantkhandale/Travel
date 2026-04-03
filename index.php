@@ -30,7 +30,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
     
     <link rel="stylesheet" href="assets/css/index.css">
 </head>
-<body>
+<body class="index-page">
 
     <!-- Navbar -->
     <nav class="navbar" id="mainNav">
@@ -133,6 +133,30 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
             <?php endif; ?>
         </div>
 
+        <div class="explorer-toolbar">
+            <div class="explorer-controls">
+                <label>
+                    Sort
+                    <select id="sortPosts">
+                        <option value="newest">Newest</option>
+                        <option value="title-asc">Title A-Z</option>
+                        <option value="title-desc">Title Z-A</option>
+                    </select>
+                </label>
+                <label>
+                    Filter
+                    <select id="filterPosts">
+                        <option value="all">All Stories</option>
+                        <option value="with-image">With Image</option>
+                        <option value="saved">Saved Stories</option>
+                    </select>
+                </label>
+            </div>
+            <div class="explorer-meta">
+                <span id="resultsCount">0 stories</span>
+            </div>
+        </div>
+
         <div class="grid" id="postsGrid">
             <?php if (empty($posts)): ?>
                 <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
@@ -146,7 +170,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
                 </div>
             <?php else: ?>
                 <?php foreach ($posts as $post): ?>
-                    <div class="card" id="post-<?php echo $post['id']; ?>" data-post-id="<?php echo $post['id']; ?>" data-title="<?php echo htmlspecialchars($post['title']); ?>" data-description="<?php echo htmlspecialchars($post['description']); ?>">
+                    <div class="card" id="post-<?php echo $post['id']; ?>" data-post-id="<?php echo $post['id']; ?>" data-title="<?php echo htmlspecialchars($post['title']); ?>" data-description="<?php echo htmlspecialchars($post['description']); ?>" data-author="<?php echo htmlspecialchars($post['author_name']); ?>" data-has-image="<?php echo !empty($post['image']) ? '1' : '0'; ?>">
                         <div class="card-img">
                             <?php if (!empty($post['image'])): ?>
                                 <img src="uploads/<?php echo htmlspecialchars($post['image']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
@@ -171,11 +195,14 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
                                 </button>
                             </div>
                             <div class="card-actions">
-                                <a href="post.php?slug=<?php echo htmlspecialchars($post['slug']); ?>" class="btn btn-ghost"><i class="fas fa-book-open" style="margin-right:6px;"></i>Read</a>
+                                <a href="post.php?slug=<?php echo htmlspecialchars($post['slug']); ?>" class="btn btn-ghost"><i class="fas fa-book-open"></i>Read</a>
+                                <button type="button" class="btn btn-ghost save-btn" data-post-id="<?php echo $post['id']; ?>" aria-label="Save post">
+                                    <i class="far fa-bookmark"></i>Save
+                                </button>
                                 <?php if ($isLoggedIn && $_SESSION['user_id'] == $post['user_id']): ?>
-                                    <a href="edit-post.php?id=<?php echo $post['id']; ?>" class="btn btn-secondary"><i class="fas fa-edit" style="margin-right:6px;"></i>Edit</a>
+                                    <a href="edit-post.php?id=<?php echo $post['id']; ?>" class="btn btn-secondary"><i class="fas fa-edit"></i>Edit</a>
                                 <?php else: ?>
-                                    <button class="btn btn-secondary disabled" title="Only the author can edit"><i class="fas fa-edit" style="margin-right:6px;"></i>Edit</button>
+                                    <button class="btn btn-secondary disabled" title="Only the author can edit"><i class="fas fa-edit"></i>Edit</button>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -184,6 +211,10 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
             <?php endif; ?>
         </div>
     </div>
+
+    <button id="backToTop" class="back-to-top" type="button" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
     <!-- Categories Section -->
     <section class="categories-section" id="categories">
