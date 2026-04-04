@@ -20,16 +20,18 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TravelBlog - Explore The World</title>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <link rel="stylesheet" href="assets/css/index.css">
 </head>
+
 <body class="index-page">
 
     <!-- Navbar -->
@@ -37,26 +39,26 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
         <a href="index.php" class="logo">
             <i class="fas fa-globe"></i><span>Travel</span>Blog
         </a>
-        
+
         <div class="nav-links" id="navLinks">
             <?php if ($isLoggedIn): ?>
                 <a href="profile.php?user_id=<?php echo $_SESSION['user_id']; ?>" class="user-welcome">👋 Welcome, <?php echo htmlspecialchars($userName); ?>!</a>
             <?php endif; ?>
-            
+
             <a href="index.php">Home</a>
             <a href="#categories">Categories</a>
             <?php if ($isLoggedIn): ?>
-                <a href="add-post.php">Add Post</a>                <a href="edit-profile.php">Edit Profile</a>                <a href="logout.php">Logout</a>
+                <a href="add-post.php">Add Post</a> <a href="edit-profile.php">Edit Profile</a> <a href="logout.php">Logout</a>
             <?php else: ?>
                 <a href="login.php">Login</a>
                 <a href="signup.php">Signup</a>
             <?php endif; ?>
         </div>
-        
+
         <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">
             <i class="fas fa-moon"></i>
         </button>
-        
+
         <button class="menu-toggle" id="mobile-menu">
             <i class="fas fa-bars"></i>
         </button>
@@ -67,7 +69,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
         <h1>The World Is Yours</h1>
         <h2>To Discover.</h2>
         <p>Document your memories, share hidden gems, and get inspired by a global community of modern-day explorers.</p>
-        
+
         <div class="search-box">
             <i class="fas fa-search"></i>
             <input type="text" id="searchInput" placeholder="Search posts, destinations, stories...">
@@ -105,7 +107,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
             <h2>📍 Recent Activity</h2>
             <p>See what travelers around the world are up to right now</p>
         </div>
-        
+
         <div class="activity-feed" id="activityFeed">
             <!-- Activity items will be populated by JavaScript -->
         </div>
@@ -302,4 +304,5 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 
     <script src="assets/js/index.js"></script>
 </body>
+
 </html>

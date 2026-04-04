@@ -1,43 +1,24 @@
 <?php
+// ... (Tera PHP Logic top par bilkul same rahega)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-
 include 'includes/db.php';
 session_start();
 
-// Get user_id from URL
-if (!isset($_GET['user_id'])) {
-    header("Location: index.php");
-    exit();
-}
-
+if (!isset($_GET['user_id'])) { header("Location: index.php"); exit(); }
 $user_id = mysqli_real_escape_string($conn, $_GET['user_id']);
-
-// Fetch user info
 $user_query = "SELECT * FROM users WHERE id = '$user_id'";
 $user_result = mysqli_query($conn, $user_query);
 $user = mysqli_fetch_assoc($user_result);
+if (!$user) { header("Location: index.php"); exit(); }
 
-if (!$user) {
-    header("Location: index.php");
-    exit();
-}
-
-// Fetch posts by this user
 $query = "SELECT posts.*, users.name as author_name FROM posts JOIN users ON posts.user_id = users.id WHERE posts.user_id = '$user_id' ORDER BY created_at DESC";
 $result = mysqli_query($conn, $query);
 $posts = [];
-while ($row = mysqli_fetch_assoc($result)) {
-    $posts[] = $row;
-}
+while ($row = mysqli_fetch_assoc($result)) { $posts[] = $row; }
 
-// Check if user is logged in
 $isLoggedIn = isset($_SESSION['user_id']);
-$userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 $isOwner = $isLoggedIn && $_SESSION['user_id'] == $user_id;
-
-// Check for update success message
-$updateMessage = isset($_GET['updated']) && $_GET['updated'] == '1' ? "✅ Profile updated successfully!" : "";
 ?>
 
 <!DOCTYPE html>
@@ -45,202 +26,276 @@ $updateMessage = isset($_GET['updated']) && $_GET['updated'] == '1' ? "✅ Profi
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($user['name']); ?>'s Profile - TravelBlog</title>
-    
+    <title><?php echo htmlspecialchars($user['name']); ?> - Profile</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link rel="stylesheet" href="assets/css/index.css">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --card-bg: #111111;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --accent: #6366f1;
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --nav-bg: #ffffff;
+            --nav-text: #0f172a;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --nav-bg: #ffffff;
+            --nav-text: #0f172a;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: 0.3s ease;
+        }
+
+        /* --- Navbar: Pure White Modern --- */
+        .navbar {
+            background: var(--nav-bg);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .navbar .logo {
+            color: var(--nav-text) !important;
+            font-weight: 800;
+            font-size: 1.5rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar .logo i { color: var(--accent); }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            color: #475569 !important;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover { color: var(--accent) !important; }
+
+        /* Theme Switcher in Nav */
+        .theme-switch-nav {
+            cursor: pointer;
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            background: #f1f5f9;
+            border-radius: 12px;
+            color: #0f172a;
+            transition: 0.3s;
+        }
+
+        .theme-switch-nav:hover { background: var(--accent); color: white; }
+
+        /* --- Hero Section: Massive & Pro --- */
+        .profile-hero {
+            position: relative;
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 20px 60px;
+            background: <?php echo !empty($user['background_image']) ? 'url(uploads/' . htmlspecialchars($user['background_image']) . ') center/cover no-repeat fixed' : 'linear-gradient(135deg, #0f172a, #1e293b)'; ?>;
+        }
+
+        .hero-mask {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, var(--bg-color) 100%);
+            z-index: 1;
+        }
+
+        .profile-glass-card {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 850px;
+            width: 90%;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+        }
+
+        .avatar-container {
+            width: 160px; height: 160px;
+            margin: -140px auto 30px;
+            padding: 6px;
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            border-radius: 50%;
+            box-shadow: 0 0 40px rgba(99, 102, 241, 0.4);
+        }
+
+        .avatar-container img {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            border: 5px solid var(--bg-color);
+            object-fit: cover;
+        }
+
+        .profile-info h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            letter-spacing: -3px;
+            margin: 0;
+            background: linear-gradient(to bottom, #fff 40%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        [data-theme="light"] .profile-info h1 {
+            background: linear-gradient(to bottom, #0f172a, #64748b);
+            -webkit-background-clip: text;
+        }
+
+        /* --- Grid & Cards --- */
+        .main-container { padding: 60px 5%; margin-top: -40px; position: relative; z-index: 3; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 35px; }
+
+        .sexy-card {
+            background: var(--card-bg);
+            border-radius: 30px;
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+            display: flex; flex-direction: column;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .sexy-card:hover { transform: translateY(-15px); border-color: var(--accent); box-shadow: 0 30px 60px rgba(0,0,0,0.4); }
+
+        .sexy-card img { width: 100%; height: 280px; object-fit: cover; }
+
+        .card-info { padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }
+
+        .btn-ui {
+            padding: 14px 35px;
+            border-radius: 100px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex; align-items: center; gap: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-add { background: var(--accent); color: white; }
+        .btn-edit { background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--glass-border); }
+
+        .delete-btn {
+            position: absolute; top: 15px; right: 15px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white; border: none; width: 40px; height: 40px;
+            border-radius: 12px; cursor: pointer; z-index: 10;
+        }
+    </style>
 </head>
+
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar" id="mainNav">
-        <a href="index.php" class="logo">
-            <i class="fas fa-globe"></i><span>Travel</span>Blog
-        </a>
-        
-        <div class="nav-links" id="navLinks">
-            <?php if ($isLoggedIn): ?>
-                <a href="profile.php?user_id=<?php echo $_SESSION['user_id']; ?>" class="user-welcome">👋 Welcome, <?php echo htmlspecialchars($userName); ?>!</a>
-            <?php endif; ?>
-            
+    <nav class="navbar">
+        <a href="index.php" class="logo"><i class="fas fa-globe"></i> Travel Blog </a>
+        <div class="nav-links">
             <a href="index.php">Home</a>
-            <a href="#posts">Posts</a>
-            <?php if ($isOwner): ?>
-                <a href="edit-profile.php">Edit Profile</a>
-            <?php endif; ?>
             <?php if ($isLoggedIn): ?>
-                <a href="add-post.php">Add Post</a>
                 <a href="logout.php">Logout</a>
             <?php endif; ?>
+            <div class="theme-switch-nav" onclick="toggleTheme()">
+                <i class="fas fa-moon" id="theme-icon"></i>
+            </div>
         </div>
-        
-        <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">
-            <i class="fas fa-moon"></i>
-        </button>
-        
-        <button class="menu-toggle" id="mobile-menu">
-            <i class="fas fa-bars"></i>
-        </button>
     </nav>
 
-    <!-- Profile Header -->
-    <section class="hero profile-header" style="padding: 140px 20px 80px; background: <?php echo !empty($user['background_image']) ? 'linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 30%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.5) 100%), url(uploads/' . htmlspecialchars($user['background_image']) . ') center/cover no-repeat' : 'linear-gradient(135deg, rgba(99,102,241,0.9) 0%, rgba(168,85,247,0.9) 50%, rgba(6,182,212,0.9) 100%)'; ?>; position: relative; min-height: 75vh; display: flex; align-items: center; justify-content: center;">
-        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(45deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%);"></div>
-        <div style="text-align: center; position: relative; z-index: 2; color: white; max-width: 900px; margin: 0 auto; padding: 0 20px;">
-            <?php if (!empty($updateMessage)): ?>
-                <div style="background: var(--success); color: white; padding: 15px 30px; border-radius: 15px; margin-bottom: 30px; display: inline-block; box-shadow: var(--shadow-lg); animation: slideDown 0.5s ease;">
-                    <?php echo $updateMessage; ?>
+    <header class="profile-hero">
+        <div class="hero-mask"></div>
+        <div class="profile-glass-card">
+            <div class="avatar-container">
+                <img src="<?php echo $user['profile_photo'] ? 'uploads/'.htmlspecialchars($user['profile_photo']) : 'assets/img/default.png'; ?>" alt="User">
+            </div>
+
+            <div class="profile-info">
+                <h1><?php echo htmlspecialchars($user['name']); ?></h1>
+                <p style="color: var(--accent); font-size: 1.4rem; font-weight: 600; margin-top: 10px;">Digital Nomad & Photography Enthusiast</p>
+
+                <div style="display: flex; justify-content: center; gap: 40px; margin: 35px 0;">
+                    <div style="text-align: center;"><span style="display: block; font-size: 1.8rem; font-weight: 800;"><?php echo count($posts); ?></span> <span style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Stories</span></div>
+                    <div style="text-align: center;"><span style="display: block; font-size: 1.8rem; font-weight: 800;"><?php echo date('Y', strtotime($user['created_at'])); ?></span> <span style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Member</span></div>
                 </div>
-            <?php endif; ?>
-            
-            <div style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden; border: 6px solid rgba(255,255,255,0.95); margin: 0 auto 35px; box-shadow: 0 15px 35px rgba(0,0,0,0.4), 0 0 60px rgba(255,255,255,0.1); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;" class="profile-photo-container">
-                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%); border-radius: 50%;"></div>
-                <?php if (!empty($user['profile_photo'])): ?>
-                    <img src="uploads/<?php echo htmlspecialchars($user['profile_photo']); ?>" alt="<?php echo htmlspecialchars($user['name']); ?>" style="width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1;">
-                <?php else: ?>
-                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 4.5rem; position: relative; z-index: 1;">
-                        <i class="fas fa-user"></i>
+
+                <?php if ($isOwner): ?>
+                    <div class="action-area">
+                        <a href="edit-profile.php" class="btn-ui btn-edit"><i class="fas fa-user-edit"></i> Edit Profile</a>
+                        <a href="add-post.php" class="btn-ui btn-add"><i class="fas fa-plus-circle"></i> New Story</a>
                     </div>
                 <?php endif; ?>
             </div>
-            <h1 style="font-size: clamp(2.8rem, 6vw, 4rem); font-weight: 700; margin-bottom: 20px; background: linear-gradient(135deg, #a855f7, #06b6d4, #6366f1); background-size: 300% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientShift 4s linear infinite, fadeInUp 1s ease-out; text-shadow: 0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6); letter-spacing: -1.5px; line-height: 1.1; position: relative;"><?php echo htmlspecialchars($user['name']); ?>'s Travel Stories</h1>
-            <p style="font-size: clamp(1.1rem, 2.5vw, 1.4rem); margin-bottom: 50px; background: linear-gradient(135deg, #a855f7, #06b6d4, #6366f1); background-size: 300% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientShift 4s linear infinite, fadeInUp 1s ease-out 0.2s both; text-shadow: 0 2px 4px rgba(0,0,0,0.7); font-weight: 300; opacity: 0.9; letter-spacing: 0.5px; position: relative;">Discover amazing destinations through <?php echo htmlspecialchars($user['name']); ?>'s eyes</p>
-            
-            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 40px;" class="stats-container">
-                <div style="background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); padding: 18px 30px; border-radius: 50px; box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 40px rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; position: relative; overflow: hidden;" class="stats-badge">
-                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);"></div>
-                    <i class="fas fa-map-marked-alt" style="color: var(--primary); margin-right: 10px; font-size: 1.2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));"></i>
-                    <span style="font-weight: 700; color: var(--text-main); font-size: 1.1rem; position: relative; z-index: 1; text-shadow: 0 1px 2px rgba(0,0,0,0.1);"><?php echo count($posts); ?> Adventure<?php echo count($posts) != 1 ? 's' : ''; ?></span>
-                </div>
-                <div style="background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); padding: 18px 30px; border-radius: 50px; box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 40px rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; position: relative; overflow: hidden;" class="stats-badge">
-                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);"></div>
-                    <i class="fas fa-calendar-alt" style="color: var(--secondary); margin-right: 10px; font-size: 1.2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));"></i>
-                    <span style="font-weight: 700; color: var(--text-main); font-size: 1.1rem; position: relative; z-index: 1; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">Joined <?php echo date('M Y', strtotime($user['created_at'] ?? 'now')); ?></span>
-                </div>
-            </div>
-            
-            <?php if ($isOwner): ?>
-                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-                    <a href="add-post.php" style="background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 100%); backdrop-filter: blur(15px); color: var(--primary); padding: 16px 32px; border-radius: 50px; text-decoration: none; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 40px rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); display: inline-flex; align-items: center; gap: 10px; font-size: 1.1rem; position: relative; overflow: hidden;" class="profile-header-btn">
-                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(168,85,247,0.05) 100%);"></div>
-                        <i class="fas fa-plus" style="position: relative; z-index: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));"></i> 
-                        <span style="position: relative; z-index: 1; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">Share New Story</span>
-                    </a>
-                    <a href="edit-profile.php" style="background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(241,245,249,0.85) 100%); backdrop-filter: blur(15px); color: var(--text-main); padding: 16px 32px; border-radius: 50px; text-decoration: none; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 40px rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); display: inline-flex; align-items: center; gap: 10px; font-size: 1.1rem; position: relative; overflow: hidden;" class="profile-header-btn">
-                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.02) 100%);"></div>
-                        <i class="fas fa-edit" style="position: relative; z-index: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));"></i> 
-                        <span style="position: relative; z-index: 1; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">Edit Profile</span>
-                    </a>
-                </div>
-            <?php endif; ?>
         </div>
-    </section>
+    </header>
 
-    <!-- Posts Section -->
-    <div class="container" id="posts">
-        <div class="section-header">
-            <h2>📖 <?php echo htmlspecialchars($user['name']); ?>'s Stories</h2>
-            <p><?php echo count($posts); ?> adventure<?php echo count($posts) != 1 ? 's' : ''; ?> shared</p>
-        </div>
-
-        <div class="grid" id="postsGrid">
-            <?php if (empty($posts)): ?>
-                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
-                    <h3 style="color: var(--text-muted); margin-bottom: 20px;">No stories yet!</h3>
-                    <p style="color: var(--text-muted); margin-bottom: 30px;"><?php echo $isOwner ? 'Start sharing your travel adventures' : htmlspecialchars($user['name']) . ' hasn\'t shared any stories yet'; ?>.</p>
+    <main class="main-container">
+        <div class="grid">
+            <?php foreach ($posts as $post): ?>
+                <article class="sexy-card">
                     <?php if ($isOwner): ?>
-                        <a href="add-post.php" style="background: var(--primary); color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 600;">
-                            Start Writing
-                        </a>
+                        <button onclick="if(confirm('Delete permanently?')) window.location.href='delete-post.php?id=<?php echo $post['id']; ?>'" class="delete-btn">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     <?php endif; ?>
-                </div>
-            <?php else: ?>
-                <?php foreach ($posts as $post): ?>
-                    <div class="card" id="post-<?php echo $post['id']; ?>" data-post-id="<?php echo $post['id']; ?>" data-title="<?php echo htmlspecialchars($post['title']); ?>" data-description="<?php echo htmlspecialchars($post['description']); ?>">
-                        <div class="card-img">
-                            <?php if (!empty($post['image'])): ?>
-                                <img src="uploads/<?php echo htmlspecialchars($post['image']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
-                            <?php else: ?>
-                                <img src="https://via.placeholder.com/350x260?text=Travel+Story" alt="placeholder">
+
+                    <img src="uploads/<?php echo $post['image'] ?: 'default.jpg'; ?>" alt="Post Image">
+                    <div class="card-info">
+                        <h3 style="font-size: 1.6rem; margin-bottom: 15px;"><?php echo htmlspecialchars($post['title']); ?></h3>
+                        <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;"><?php echo htmlspecialchars(substr($post['description'], 0, 110)); ?>...</p>
+                        <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center;">
+                            <a href="post.php?slug=<?php echo $post['slug']; ?>" style="color: var(--accent); text-decoration: none; font-weight: 800;">READ STORY →</a>
+                            <?php if ($isOwner): ?>
+                                <a href="edit-post.php?id=<?php echo $post['id']; ?>" style="color: var(--text-muted);"><i class="fas fa-pen-nib"></i></a>
                             <?php endif; ?>
                         </div>
-                        <div class="card-body">
-                            <h3><?php echo htmlspecialchars(substr($post['title'], 0, 50)); ?></h3>
-                            <p><?php echo htmlspecialchars(substr($post['description'], 0, 100)); ?>...</p>
-                        </div>
-                        <div class="card-footer">
-                            <div class="stats">
-                                <button type="button" class="stat-item like-btn" data-post-id="<?php echo $post['id']; ?>" aria-label="Like post">
-                                    <i class="far fa-heart"></i>
-                                    <span class="like-count">0</span>
-                                </button>
-                                <button type="button" class="stat-item comment-btn" data-post-id="<?php echo $post['id']; ?>" aria-label="Add comment">
-                                    <i class="far fa-comment"></i>
-                                    <span class="comment-count">0</span>
-                                </button>
-                            </div>
-                            <div class="card-actions">
-                                <a href="post.php?slug=<?php echo htmlspecialchars($post['slug']); ?>" class="btn btn-ghost"><i class="fas fa-book-open"></i>Read</a>
-                                <?php if ($isOwner): ?>
-                                    <a href="edit-post.php?id=<?php echo $post['id']; ?>" class="btn btn-secondary"><i class="fas fa-edit"></i>Edit</a>
-                                    <button onclick="deletePost(<?php echo $post['id']; ?>)" class="btn btn-secondary btn-danger"><i class="fas fa-trash"></i>Delete</button>
-                                <?php endif; ?>
-                            </div>
-                        </div>
                     </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                </article>
+            <?php endforeach; ?>
         </div>
-    </div>
+    </main>
 
-    <!-- Footer -->
-    <footer class="main-footer">
-        <div class="footer-grid">
-            <div>
-                <a href="index.php" class="footer-logo">
-                    <i class="fas fa-globe"></i> <span style="color: var(--primary);">Travel</span>Blog
-                </a>
-                <p style="color: var(--text-muted); margin-bottom: 20px; line-height: 1.8;">Your gateway to discovering extraordinary destinations and sharing unforgettable travel experiences with a global community of adventurers.</p>
-                <div class="social-icons">
-                    <a href="https://facebook.com" class="social-btn" title="Facebook">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a href="https://twitter.com" class="social-btn" title="Twitter">
-                        <i class="fab fa-twitter"></i>
-                    </a>
-                    <a href="https://instagram.com" class="social-btn" title="Instagram">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="https://youtube.com" class="social-btn" title="YouTube">
-                        <i class="fab fa-youtube"></i>
-                    </a>
-                </div>
-            </div>
-            <div>
-                <h4 style="font-weight: 800; margin-bottom: 20px;">Quick Links</h4>
-                <ul style="list-style: none; padding: 0;">
-                    <li><a href="index.php" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Home</a></li>
-                    <li><a href="signup.php" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Join Community</a></li>
-                    <li><a href="login.php" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Login</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4 style="font-weight: 800; margin-bottom: 20px;">Support</h4>
-                <ul style="list-style: none; padding: 0;">
-                    <li><a href="#" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Help Center</a></li>
-                    <li><a href="#" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Contact Us</a></li>
-                    <li><a href="#" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Privacy Policy</a></li>
-                </ul>
-            </div>
-        </div>
-        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);">
-            <p style="color: var(--text-muted); font-size: 0.9rem;">© 2024 TravelBlog. Made with ❤️ for travelers worldwide.</p>
-        </div>
-    </footer>
-
-    <!-- Scripts -->
-    <script src="assets/js/index.js"></script>
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            if (body.getAttribute('data-theme') === 'light') {
+                body.removeAttribute('data-theme');
+                icon.className = 'fas fa-moon';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                icon.className = 'fas fa-sun';
+            }
+        }
+    </script>
 </body>
 </html>
