@@ -71,6 +71,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 
     <section class="hero">
         <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="https://images.unsplash.com/photo-1488085061387-422e29b40080?auto=format&fit=crop&w=2100&q=80" aria-hidden="true">
+            <source src="assets/videos/hero.mp4" type="video/mp4">
             <source src="https://cdn.coverr.co/videos/coverr-aerial-view-of-a-mountain-road-1579/1080p.mp4" type="video/mp4">
         </video>
         <h1>The World Is Yours</h1>
@@ -89,6 +90,21 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
             <?php else: ?>
                 <a href="login.php" class="btn btn-secondary"><i class="fas fa-right-to-bracket"></i> Login</a>
             <?php endif; ?>
+        </div>
+
+        <div class="hero-metrics" aria-label="Travel highlights">
+            <div class="hero-metric">
+                <span class="hero-metric-value">12K+</span>
+                <span class="hero-metric-label">Stories</span>
+            </div>
+            <div class="hero-metric">
+                <span class="hero-metric-value">89</span>
+                <span class="hero-metric-label">Destinations</span>
+            </div>
+            <div class="hero-metric">
+                <span class="hero-metric-value">156</span>
+                <span class="hero-metric-label">Communities</span>
+            </div>
         </div>
     </section>
 
