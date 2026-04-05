@@ -78,7 +78,8 @@ if (isset($_POST['update_profile'])) {
     <title>Edit Profile | TravelBlog</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/index.css">
+    <link rel="stylesheet" href="assets/css/index.css?v=3">
+    <link rel="stylesheet" href="assets/css/enhance.css?v=3">
 </head>
 <body>
 
@@ -89,17 +90,19 @@ if (isset($_POST['update_profile'])) {
         </a>
         
         <div class="nav-links" id="navLinks">
-            <a href="profile.php?user_id=<?php echo $_SESSION['user_id']; ?>" class="user-welcome">👋 Welcome, <?php echo htmlspecialchars($_SESSION['user_name']); ?>!</a>
+            <a href="profile.php?user_id=<?php echo $_SESSION['user_id']; ?>" class="user-welcome">
+                <i class="fas fa-user"></i> Hi, <?php echo htmlspecialchars($_SESSION['user_name']); ?>
+            </a>
             <a href="index.php">Home</a>
             <a href="add-post.php">Add Post</a>
             <a href="logout.php">Logout</a>
         </div>
         
-        <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">
+        <button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle theme" onclick="toggleTheme()">
             <i class="fas fa-moon"></i>
         </button>
         
-        <button class="menu-toggle" id="mobile-menu">
+        <button class="menu-toggle" id="mobile-menu" type="button" aria-label="Open menu" aria-controls="navLinks" aria-expanded="false">
             <i class="fas fa-bars"></i>
         </button>
     </nav>

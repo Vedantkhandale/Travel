@@ -220,7 +220,10 @@ $isOwner = $isLoggedIn && $_SESSION['user_id'] == $user_id;
 <body>
 
     <nav class="navbar">
-        <a href="index.php" class="logo"><i class="fas fa-globe"></i> Travel Blog </a>
+       <a href="index.php" class="logo">
+    <i class="fas fa-globe" style="color: black; font-size: 26px;"></i> 
+    <span style="color: #6c5ce7; font-size: 26px;">Travel </span> Blog
+</a>
         <div class="nav-links">
             <a href="index.php">Home</a>
             <?php if ($isLoggedIn): ?>

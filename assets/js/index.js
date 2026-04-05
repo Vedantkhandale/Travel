@@ -7,16 +7,55 @@ const explorerState = {
     filter: 'all'
 };
 
+function getCookieValue(name) {
+    const raw = document.cookie || '';
+    const parts = raw.split(';').map((p) => p.trim());
+    for (const part of parts) {
+        if (!part) continue;
+        const eq = part.indexOf('=');
+        if (eq === -1) continue;
+        const key = part.slice(0, eq).trim();
+        if (key !== name) continue;
+        return decodeURIComponent(part.slice(eq + 1));
+    }
+    return '';
+}
+
+function applyStoredTheme() {
+    const cookieTheme = getCookieValue('theme');
+    const storedTheme = cookieTheme || localStorage.getItem('theme') || '';
+    if (storedTheme === 'dark') {
+        document.body.classList.add('dark');
+    } else if (storedTheme === 'light') {
+        document.body.classList.remove('dark');
+    }
+
+    const themeBtn = document.getElementById('themeBtn');
+    const icon = document.querySelector('#themeBtn i');
+    if (icon) {
+        const isDark = document.body.classList.contains('dark');
+        icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        if (themeBtn) {
+            themeBtn.setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
+        }
+    }
+}
+
 // Keep theme toggle global because HTML uses onclick="toggleTheme()".
 function toggleTheme() {
     const body = document.body;
     body.classList.toggle('dark');
     const isDark = body.classList.contains('dark');
+    const themeBtn = document.getElementById('themeBtn');
     const icon = document.querySelector('#themeBtn i');
     if (icon) {
         icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
     }
+    if (themeBtn) {
+        themeBtn.setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
+    }
     document.cookie = 'theme=' + (isDark ? 'dark' : 'light') + ';path=/';
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
 
 function toastNotification(message) {
@@ -66,13 +105,59 @@ function setupNavbarAndMenu() {
     const navLinks = document.getElementById('navLinks');
     if (!menuToggle || !navLinks) return;
 
-    menuToggle.addEventListener('click', () => {
-        navLinks.classList.toggle('active');
-        const icon = menuToggle.querySelector('i');
+    menuToggle.setAttribute('aria-controls', 'navLinks');
+    if (!menuToggle.hasAttribute('aria-expanded')) {
+        menuToggle.setAttribute('aria-expanded', 'false');
+    }
+
+    let scrim = document.querySelector('.nav-scrim');
+    if (!scrim) {
+        scrim = document.createElement('div');
+        scrim.className = 'nav-scrim';
+        document.body.appendChild(scrim);
+    }
+
+    const icon = menuToggle.querySelector('i');
+
+    const closeMenu = () => {
+        navLinks.classList.remove('active');
+        scrim.classList.remove('visible');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.setAttribute('aria-label', 'Open menu');
         if (icon) {
-            icon.classList.toggle('fa-bars');
-            icon.classList.toggle('fa-times');
+            icon.classList.add('fa-bars');
+            icon.classList.remove('fa-times');
         }
+    };
+
+    const openMenu = () => {
+        navLinks.classList.add('active');
+        scrim.classList.add('visible');
+        menuToggle.setAttribute('aria-expanded', 'true');
+        menuToggle.setAttribute('aria-label', 'Close menu');
+        if (icon) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+        }
+    };
+
+    menuToggle.addEventListener('click', () => {
+        if (navLinks.classList.contains('active')) closeMenu();
+        else openMenu();
+    });
+
+    scrim.addEventListener('click', closeMenu);
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeMenu();
+    });
+
+    navLinks.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('click', closeMenu);
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 992) closeMenu();
     });
 }
 
@@ -557,6 +642,8 @@ function deletePost(postId) {
 window.deletePost = deletePost;
 
 document.addEventListener('DOMContentLoaded', () => {
+    applyStoredTheme();
+
     document.querySelectorAll('#postsGrid .card').forEach((card, index) => {
         card.dataset.originalIndex = String(index);
     });
@@ -574,11 +661,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStats();
     setInterval(updateStats, 30000);
     setInterval(updateActivityTimes, 60000);
-
-    if (document.body.classList.contains('dark')) {
-        const icon = document.querySelector('#themeBtn i');
-        if (icon) icon.className = 'fas fa-sun';
-    }
 
     setupLoadingOverlay();
     addButtonEffects();

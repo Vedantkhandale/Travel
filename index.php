@@ -29,12 +29,15 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <link rel="stylesheet" href="assets/css/index.css">
+    <link rel="stylesheet" href="assets/css/index.css?v=3">
+    <link rel="stylesheet" href="assets/css/enhance.css?v=3">
+   
+
+   
 </head>
 
 <body class="index-page">
 
-    <!-- Navbar -->
     <nav class="navbar" id="mainNav">
         <a href="index.php" class="logo">
             <i class="fas fa-globe"></i><span>Travel</span>Blog
@@ -42,7 +45,9 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 
         <div class="nav-links" id="navLinks">
             <?php if ($isLoggedIn): ?>
-                <a href="profile.php?user_id=<?php echo $_SESSION['user_id']; ?>" class="user-welcome">👋 Welcome, <?php echo htmlspecialchars($userName); ?>!</a>
+                <a href="profile.php?user_id=<?php echo $_SESSION['user_id']; ?>" class="user-welcome">
+                    <i class="fas fa-user"></i> Hi, <?php echo htmlspecialchars($userName); ?>
+                </a>
             <?php endif; ?>
 
             <a href="index.php">Home</a>
@@ -55,29 +60,39 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
             <?php endif; ?>
         </div>
 
-        <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">
+        <button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle theme" onclick="toggleTheme()">
             <i class="fas fa-moon"></i>
         </button>
 
-        <button class="menu-toggle" id="mobile-menu">
+        <button class="menu-toggle" id="mobile-menu" type="button" aria-label="Open menu" aria-controls="navLinks" aria-expanded="false">
             <i class="fas fa-bars"></i>
         </button>
     </nav>
 
-    <!-- Hero Section -->
     <section class="hero">
+        <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="https://images.unsplash.com/photo-1488085061387-422e29b40080?auto=format&fit=crop&w=2100&q=80" aria-hidden="true">
+            <source src="https://cdn.coverr.co/videos/coverr-aerial-view-of-a-mountain-road-1579/1080p.mp4" type="video/mp4">
+        </video>
         <h1>The World Is Yours</h1>
-        <h2>To Discover.</h2>
+        <h2 class="typing-text">To Discover.</h2>
         <p>Document your memories, share hidden gems, and get inspired by a global community of modern-day explorers.</p>
 
         <div class="search-box">
             <i class="fas fa-search"></i>
             <input type="text" id="searchInput" placeholder="Search posts, destinations, stories...">
         </div>
+
+        <div class="hero-cta">
+            <a href="#postsGrid" class="btn btn-primary"><i class="fas fa-compass"></i> Explore Stories</a>
+            <?php if ($isLoggedIn): ?>
+                <a href="add-post.php" class="btn btn-secondary"><i class="fas fa-pen-to-square"></i> Write a Story</a>
+            <?php else: ?>
+                <a href="login.php" class="btn btn-secondary"><i class="fas fa-right-to-bracket"></i> Login</a>
+            <?php endif; ?>
+        </div>
     </section>
 
-    <!-- Stats Section -->
-    <section class="stats-section">
+    <section class="stats-section fade-in">
         <div class="stats-grid">
             <div class="stat-item">
                 <span class="stat-number" id="onlineUsers">245</span>
@@ -98,23 +113,19 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
         </div>
     </section>
 
-    <!-- Notifications Container -->
     <div id="notificationContainer"></div>
 
-    <!-- Recent Activity Section -->
-    <section class="activity-section">
+    <section class="activity-section fade-in">
         <div class="activity-header">
-            <h2>📍 Recent Activity</h2>
+            <h2><i class="fas fa-location-dot"></i> Recent Activity</h2>
             <p>See what travelers around the world are up to right now</p>
         </div>
 
         <div class="activity-feed" id="activityFeed">
-            <!-- Activity items will be populated by JavaScript -->
-        </div>
+            </div>
     </section>
 
-    <!-- Premium Slider Section -->
-    <section class="slider-section">
+    <section class="slider-section scale-in">
         <div class="slider-wrapper">
             <div class="slides">
                 <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&h=550" alt="Travel 1">
@@ -124,13 +135,12 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
         </div>
     </section>
 
-    <!-- Posts Grid Section -->
-    <div class="container">
+    <div class="container fade-in">
         <div class="section-header">
-            <h2>✨ Latest Stories</h2>
+            <h2><i class="fas fa-bolt"></i> Latest Stories</h2>
             <?php if ($isLoggedIn): ?>
-                <a href="add-post.php" style="background: var(--primary); color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 600; transition: 0.3s;">
-                    + Share Your Story
+                <a href="add-post.php" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Share Your Story
                 </a>
             <?php endif; ?>
         </div>
@@ -218,51 +228,49 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
         <i class="fas fa-arrow-up"></i>
     </button>
 
-    <!-- Categories Section -->
-    <section class="categories-section" id="categories">
-        <h2 style="text-align: center; font-size: 2.5rem; font-weight: 800; margin-bottom: 50px;">🧭 Popular Categories</h2>
+    <section class="categories-section fade-in" id="categories">
+        <h2 class="section-title"><i class="fas fa-compass"></i> Popular Categories</h2>
         <div class="categories-grid">
             <div class="category-card">
-                <div class="category-icon">🏖️</div>
+                <div class="category-icon"><i class="fas fa-umbrella-beach"></i></div>
                 <h3>Beach Destinations</h3>
                 <p>Explore stunning coastal paradises and island retreats</p>
             </div>
             <div class="category-card">
-                <div class="category-icon">🏔️</div>
+                <div class="category-icon"><i class="fas fa-mountain"></i></div>
                 <h3>Mountain Adventures</h3>
                 <p>Conquer peaks and discover alpine landscapes</p>
             </div>
             <div class="category-card">
-                <div class="category-icon">🏙️</div>
+                <div class="category-icon"><i class="fas fa-city"></i></div>
                 <h3>City Exploration</h3>
                 <p>Navigate vibrant urban centers and cultural hubs</p>
             </div>
             <div class="category-card">
-                <div class="category-icon">🌴</div>
+                <div class="category-icon"><i class="fas fa-tree"></i></div>
                 <h3>Jungle Trails</h3>
                 <p>Venture into lush rainforests and wildlife sanctuaries</p>
             </div>
             <div class="category-card">
-                <div class="category-icon">🏛️</div>
+                <div class="category-icon"><i class="fas fa-landmark"></i></div>
                 <h3>Historical Sites</h3>
                 <p>Discover ancient wonders and cultural heritage</p>
             </div>
             <div class="category-card">
-                <div class="category-icon">🍜</div>
+                <div class="category-icon"><i class="fas fa-utensils"></i></div>
                 <h3>Food & Culture</h3>
                 <p>Taste local cuisines and immerse in traditions</p>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="main-footer">
+    <footer class="main-footer fade-in">
         <div class="footer-grid">
-            <div>
+            <div class="footer-col footer-brand">
                 <a href="index.php" class="footer-logo">
-                    <i class="fas fa-globe"></i> <span style="color: var(--primary);">Travel</span>Blog
+                    <i class="fas fa-globe"></i> <span>Travel</span>Blog
                 </a>
-                <p style="color: var(--text-muted); margin-bottom: 20px; line-height: 1.8;">Your gateway to discovering extraordinary destinations and sharing unforgettable travel experiences with a global community of adventurers.</p>
+                <p class="footer-text">Your gateway to discovering extraordinary destinations and sharing unforgettable travel experiences with a global community of adventurers.</p>
                 <div class="social-icons">
                     <a href="https://facebook.com" class="social-btn" title="Facebook">
                         <i class="fab fa-facebook-f"></i>
@@ -278,31 +286,43 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
                     </a>
                 </div>
             </div>
-            <div>
-                <h4 style="font-weight: 800; margin-bottom: 20px;">Quick Links</h4>
-                <ul style="list-style: none; padding: 0;">
-                    <li><a href="index.php" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Home</a></li>
-                    <li><a href="#categories" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Categories</a></li>
-                    <li><a href="<?php echo $isLoggedIn ? 'add-post.php' : 'login.php'; ?>" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Add Post</a></li>
-                    <li><a href="#" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">About</a></li>
+
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="index.php"><i class="fas fa-house"></i> Home</a></li>
+                    <li><a href="#categories"><i class="fas fa-compass"></i> Categories</a></li>
+                    <li><a href="<?php echo $isLoggedIn ? 'add-post.php' : 'login.php'; ?>"><i class="fas fa-pen-to-square"></i> Add Post</a></li>
                 </ul>
             </div>
-            <div>
-                <h4 style="font-weight: 800; margin-bottom: 20px;">Support</h4>
-                <ul style="list-style: none; padding: 0;">
-                    <li><a href="#" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Help Center</a></li>
-                    <li><a href="#" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Privacy Policy</a></li>
-                    <li><a href="#" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Terms of Service</a></li>
-                    <li><a href="#" style="color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Contact Us</a></li>
+
+            <div class="footer-col">
+                <h4>Explore</h4>
+                <ul class="footer-links">
+                    <li><a href="#postsGrid"><i class="fas fa-bolt"></i> Latest Stories</a></li>
+                    <li><a href="#categories"><i class="fas fa-mountain"></i> Adventures</a></li>
+                    <li><a href="<?php echo $isLoggedIn ? 'profile.php?user_id=' . $_SESSION['user_id'] : 'login.php'; ?>"><i class="fas fa-user"></i> Profile</a></li>
                 </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Newsletter</h4>
+                <p class="footer-text">One curated travel story every week. No spam.</p>
+                <form class="footer-form" onsubmit="return false">
+                    <input type="email" placeholder="you@example.com" aria-label="Email address">
+                    <button class="btn btn-primary" type="button">Subscribe</button>
+                </form>
             </div>
         </div>
-        <div style="text-align: center; padding-top: 30px; border-top: 1px solid var(--border); margin-top: 50px; color: var(--text-muted);">
-            <p>&copy; 2024 TravelBlog. All rights reserved. Made with ❤️ for travelers.</p>
+
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner">
+                <span>© <?php echo date('Y'); ?> TravelBlog</span>
+                <span>Built for explorers.</span>
+            </div>
         </div>
     </footer>
 
     <script src="assets/js/index.js"></script>
 </body>
-
 </html>
