@@ -3190,3 +3190,182 @@ body.index-page.dark .loader-text {
         border-radius: 28px !important;
     }
 }
+
+/* Story-first fast mode tune */
+body.index-page .hero {
+    min-height: clamp(620px, 92vh, 820px) !important;
+    padding-bottom: 156px !important;
+}
+
+body.index-page .hero-shell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+body.index-page .stories-section {
+    position: relative;
+    z-index: 5;
+    margin-top: -94px;
+    padding: 0 0 28px;
+}
+
+body.index-page .stories-container {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 34px 34px 30px;
+    border-radius: 40px;
+    border: 1px solid rgba(20, 32, 51, 0.08);
+    background: rgba(255, 252, 247, 0.8);
+    box-shadow: 0 28px 60px rgba(20, 32, 51, 0.12);
+    backdrop-filter: blur(20px);
+}
+
+body.index-page .stories-header-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 14px;
+}
+
+body.index-page .stories-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 118, 110, 0.12);
+    background: rgba(15, 118, 110, 0.07);
+    color: #0f5f59;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+body.index-page .stories-status[data-mode="loading"] {
+    background: rgba(217, 119, 6, 0.1);
+    border-color: rgba(217, 119, 6, 0.18);
+    color: #9a5f12;
+}
+
+body.index-page .stories-status[data-mode="error"] {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.14);
+    color: #b91c1c;
+}
+
+body.index-page .stories-grid-wrap {
+    position: relative;
+}
+
+body.index-page .stories-grid-wrap.is-loading::after {
+    content: "";
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(15, 118, 110, 0.16);
+    border-top-color: #0f766e;
+    animation: storySpin 0.7s linear infinite;
+}
+
+@keyframes storySpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+body.index-page #postsGrid[aria-busy="true"] {
+    opacity: 0.62;
+    transition: opacity 0.2s ease;
+}
+
+body.index-page #postsGrid[aria-busy="false"] {
+    opacity: 1;
+}
+
+body.index-page .explorer-toolbar {
+    margin-bottom: 22px !important;
+}
+
+body.index-page .hero-kicker {
+    max-width: 720px;
+}
+
+body.index-page .hero p {
+    max-width: 610px;
+}
+
+body.index-page .stats-section {
+    margin-top: 0 !important;
+    padding-top: 22px !important;
+}
+
+body.index-page.dark .stories-container {
+    background: rgba(8, 15, 24, 0.82);
+    border-color: rgba(148, 163, 184, 0.12);
+    box-shadow: 0 28px 60px rgba(2, 6, 23, 0.32);
+}
+
+body.index-page.dark .stories-status {
+    background: rgba(12, 74, 110, 0.24);
+    border-color: rgba(125, 211, 252, 0.16);
+    color: #bae6fd;
+}
+
+body.index-page.dark .stories-status[data-mode="loading"] {
+    background: rgba(217, 119, 6, 0.14);
+    border-color: rgba(245, 210, 140, 0.2);
+    color: #f5d28c;
+}
+
+body.index-page.dark .stories-status[data-mode="error"] {
+    background: rgba(127, 29, 29, 0.4);
+    border-color: rgba(248, 113, 113, 0.22);
+    color: #fecaca;
+}
+
+@media (max-width: 992px) {
+    body.index-page .stories-section {
+        margin-top: -70px;
+    }
+
+    body.index-page .stories-container {
+        width: calc(100% - 24px);
+        padding: 26px 20px 24px;
+        border-radius: 34px;
+    }
+
+    body.index-page .stories-header-side {
+        width: 100%;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 680px) {
+    body.index-page .hero-shell {
+        align-items: center;
+    }
+
+    body.index-page .stories-section {
+        margin-top: -56px;
+    }
+
+    body.index-page .stories-container {
+        width: calc(100% - 16px);
+        padding: 22px 14px 20px;
+        border-radius: 28px;
+    }
+
+    body.index-page .stories-header-side,
+    body.index-page .stories-status {
+        width: 100%;
+    }
+
+    body.index-page .stories-status {
+        justify-content: center;
+    }
+}

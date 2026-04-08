@@ -19,6 +19,35 @@ while ($row = mysqli_fetch_assoc($result)) { $posts[] = $row; }
 
 $isLoggedIn = isset($_SESSION['user_id']);
 $isOwner = $isLoggedIn && $_SESSION['user_id'] == $user_id;
+$preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 'light' : 'dark';
+$storyCount = count($posts);
+$memberSince = !empty($user['created_at']) ? date('Y', strtotime($user['created_at'])) : date('Y');
+
+function buildAvatarPlaceholder($name) {
+    $initial = strtoupper(substr(trim((string) $name), 0, 1));
+    if ($initial === '') {
+        $initial = 'T';
+    }
+
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">'
+        . '<defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">'
+        . '<stop offset="0%" stop-color="#0f766e"/><stop offset="100%" stop-color="#d97706"/>'
+        . '</linearGradient></defs>'
+        . '<rect width="320" height="320" rx="48" fill="url(#g)"/>'
+        . '<text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="130" font-weight="700" fill="#ffffff">'
+        . htmlspecialchars($initial, ENT_QUOTES, 'UTF-8')
+        . '</text></svg>';
+
+    return 'data:image/svg+xml;charset=UTF-8,' . rawurlencode($svg);
+}
+
+$profilePhotoSrc = !empty($user['profile_photo'])
+    ? 'uploads/' . htmlspecialchars($user['profile_photo'])
+    : buildAvatarPlaceholder($user['name'] ?? 'Traveler');
+
+$profileTagline = $isOwner
+    ? 'Your stories, profile details, and latest photo-led travel memories.'
+    : 'Stories, snapshots, and destination notes collected on the road.';
 ?>
 
 <!DOCTYPE html>
@@ -27,211 +56,664 @@ $isOwner = $isLoggedIn && $_SESSION['user_id'] == $user_id;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($user['name']); ?> - Profile</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --bg-color: #050505;
-            --card-bg: #111111;
-            --text-main: #ffffff;
-            --text-muted: #94a3b8;
-            --accent: #6366f1;
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --nav-bg: #ffffff;
-            --nav-text: #0f172a;
+            --bg-color: #07131a;
+            --bg-accent: #0c1d29;
+            --card-bg: rgba(11, 24, 35, 0.82);
+            --surface-bg: rgba(8, 15, 24, 0.78);
+            --text-main: #f8fafc;
+            --text-muted: #9fb0bd;
+            --accent: #0f766e;
+            --accent-strong: #115e59;
+            --warm: #d97706;
+            --border: rgba(148, 163, 184, 0.14);
+            --shadow: 0 24px 60px rgba(2, 6, 23, 0.34);
         }
 
         [data-theme="light"] {
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --glass-border: rgba(0, 0, 0, 0.08);
-            --nav-bg: #ffffff;
-            --nav-text: #0f172a;
+            --bg-color: #f4efe4;
+            --bg-accent: #edf4f1;
+            --card-bg: rgba(255, 255, 255, 0.84);
+            --surface-bg: rgba(255, 250, 242, 0.82);
+            --text-main: #142033;
+            --text-muted: #5b6475;
+            --border: rgba(20, 32, 51, 0.08);
+            --shadow: 0 22px 56px rgba(20, 32, 51, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
             margin: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            transition: 0.3s ease;
+            font-family: 'Manrope', sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at top left, rgba(217, 119, 6, 0.12), transparent 28%),
+                radial-gradient(circle at top right, rgba(15, 118, 110, 0.1), transparent 32%),
+                linear-gradient(180deg, var(--bg-color) 0%, var(--bg-accent) 100%);
+            transition: background 0.25s ease, color 0.25s ease;
         }
 
-        /* --- Navbar: Pure White Modern --- */
-        .navbar {
-            background: var(--nav-bg);
-            padding: 15px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        body::before {
+            content: "";
             position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            inset: 0;
+            background:
+                linear-gradient(120deg, rgba(255, 255, 255, 0.04), transparent 28%),
+                radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.06), transparent 22%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .navbar {
+            position: sticky;
+            top: 14px;
+            z-index: 20;
+            width: min(1180px, calc(100% - 24px));
+            margin: 14px auto 0;
+            padding: 14px 18px 14px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--surface-bg);
+            backdrop-filter: blur(22px);
+            box-shadow: var(--shadow);
         }
 
         .navbar .logo {
-            color: var(--nav-text) !important;
-            font-weight: 800;
-            font-size: 1.5rem;
+            color: var(--text-main);
             text-decoration: none;
-            display: flex;
+            font-size: 1.34rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            display: inline-flex;
             align-items: center;
             gap: 10px;
         }
 
-        .navbar .logo i { color: var(--accent); }
+        .navbar .logo i {
+            color: var(--warm);
+        }
+
+        .navbar .logo span {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--warm));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 25px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .nav-links a {
-            color: #475569 !important;
+            min-height: 42px;
+            padding: 0 14px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
             text-decoration: none;
-            font-weight: 600;
-            transition: 0.3s;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease;
         }
 
-        .nav-links a:hover { color: var(--accent) !important; }
+        .nav-links a:hover {
+            background: rgba(15, 118, 110, 0.1);
+            color: var(--accent);
+            transform: translateY(-1px);
+        }
 
-        /* Theme Switcher in Nav */
+        .nav-links .nav-cta {
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: #ffffff;
+            box-shadow: 0 16px 32px rgba(15, 118, 110, 0.24);
+        }
+
+        .nav-links .nav-cta:hover {
+            color: #ffffff;
+            background: linear-gradient(135deg, #14827a, var(--accent));
+        }
+
         .theme-switch-nav {
+            width: 42px;
+            height: 42px;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
             cursor: pointer;
-            width: 40px; height: 40px;
-            display: flex; align-items: center; justify-content: center;
-            background: #f1f5f9;
-            border-radius: 12px;
-            color: #0f172a;
-            transition: 0.3s;
+            transition: transform 0.2s ease, background 0.2s ease;
         }
 
-        .theme-switch-nav:hover { background: var(--accent); color: white; }
+        .theme-switch-nav:hover {
+            transform: translateY(-1px);
+            background: rgba(15, 118, 110, 0.12);
+        }
 
-        /* --- Hero Section: Massive & Pro --- */
         .profile-hero {
             position: relative;
-            min-height: 80vh;
+            width: min(1240px, calc(100% - 24px));
+            min-height: 74vh;
+            margin: 18px auto 0;
+            padding: 120px 20px 90px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 120px 20px 60px;
-            background: <?php echo !empty($user['background_image']) ? 'url(uploads/' . htmlspecialchars($user['background_image']) . ') center/cover no-repeat fixed' : 'linear-gradient(135deg, #0f172a, #1e293b)'; ?>;
+            border-radius: 44px;
+            overflow: hidden;
+            background: <?php echo !empty($user['background_image']) ? 'url(uploads/' . htmlspecialchars($user['background_image']) . ') center/cover no-repeat' : 'linear-gradient(135deg, #09203f, #0b3b44 54%, #7c4a03)'; ?>;
+            box-shadow: var(--shadow);
         }
 
         .hero-mask {
             position: absolute;
             inset: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, var(--bg-color) 100%);
+            background:
+                linear-gradient(115deg, rgba(4, 18, 34, 0.78), rgba(4, 18, 34, 0.34) 48%, rgba(4, 18, 34, 0.74)),
+                linear-gradient(180deg, rgba(4, 18, 34, 0.08) 0%, var(--bg-color) 100%);
             z-index: 1;
         }
 
         .profile-glass-card {
             position: relative;
             z-index: 2;
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(25px);
-            border: 1px solid var(--glass-border);
-            border-radius: 50px;
-            padding: 60px 40px;
+            width: min(880px, 100%);
+            padding: 42px 34px 36px;
+            border-radius: 38px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(24px);
             text-align: center;
-            max-width: 850px;
-            width: 90%;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+            box-shadow: 0 30px 70px rgba(2, 6, 23, 0.22);
         }
 
         .avatar-container {
-            width: 160px; height: 160px;
-            margin: -140px auto 30px;
+            width: 156px;
+            height: 156px;
+            margin: 0 auto 24px;
             padding: 6px;
-            background: linear-gradient(135deg, var(--accent), #a855f7);
             border-radius: 50%;
-            box-shadow: 0 0 40px rgba(99, 102, 241, 0.4);
+            background: linear-gradient(135deg, var(--accent), var(--warm));
+            box-shadow: 0 18px 46px rgba(15, 118, 110, 0.3);
         }
 
         .avatar-container img {
-            width: 100%; height: 100%;
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            border: 5px solid var(--bg-color);
+            border: 5px solid rgba(8, 15, 24, 0.62);
             object-fit: cover;
+            display: block;
+        }
+
+        [data-theme="light"] .avatar-container img {
+            border-color: rgba(255, 255, 255, 0.86);
+        }
+
+        .profile-kicker,
+        .section-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 34px;
+            padding: 0 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(245, 210, 140, 0.24);
+            background: rgba(245, 210, 140, 0.12);
+            color: #f5d28c;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .profile-kicker::before,
+        .section-kicker::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.75;
+        }
+
+        [data-theme="light"] .section-kicker {
+            border-color: rgba(217, 119, 6, 0.16);
+            background: rgba(217, 119, 6, 0.08);
+            color: #9a5f12;
         }
 
         .profile-info h1 {
-            font-size: 4.5rem;
-            font-weight: 800;
-            letter-spacing: -3px;
-            margin: 0;
-            background: linear-gradient(to bottom, #fff 40%, #94a3b8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            margin: 20px 0 0;
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(3rem, 7vw, 5.2rem);
+            line-height: 0.95;
+            letter-spacing: -0.05em;
+            color: #f8fafc;
         }
 
         [data-theme="light"] .profile-info h1 {
-            background: linear-gradient(to bottom, #0f172a, #64748b);
-            -webkit-background-clip: text;
+            color: #142033;
         }
 
-        /* --- Grid & Cards --- */
-        .main-container { padding: 60px 5%; margin-top: -40px; position: relative; z-index: 3; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 35px; }
-
-        .sexy-card {
-            background: var(--card-bg);
-            border-radius: 30px;
-            border: 1px solid var(--glass-border);
-            overflow: hidden;
-            display: flex; flex-direction: column;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
+        .profile-subtitle {
+            max-width: 620px;
+            margin: 16px auto 0;
+            color: rgba(232, 240, 246, 0.82);
+            font-size: 1.05rem;
+            line-height: 1.8;
+            font-weight: 500;
         }
 
-        .sexy-card:hover { transform: translateY(-15px); border-color: var(--accent); box-shadow: 0 30px 60px rgba(0,0,0,0.4); }
+        [data-theme="light"] .profile-subtitle {
+            color: #5b6475;
+        }
 
-        .sexy-card img { width: 100%; height: 280px; object-fit: cover; }
+        .profile-highlights {
+            margin: 28px auto 0;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
 
-        .card-info { padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }
+        .profile-stat {
+            min-width: 150px;
+            padding: 16px 18px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        [data-theme="light"] .profile-stat {
+            border-color: rgba(20, 32, 51, 0.08);
+            background: rgba(255, 255, 255, 0.68);
+        }
+
+        .profile-stat strong {
+            display: block;
+            font-size: 1.9rem;
+            line-height: 1;
+            letter-spacing: -0.04em;
+        }
+
+        .profile-stat span {
+            display: block;
+            margin-top: 10px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .action-area {
+            margin-top: 26px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
 
         .btn-ui {
-            padding: 14px 35px;
-            border-radius: 100px;
-            font-weight: 700;
+            min-height: 48px;
+            padding: 0 20px;
+            border-radius: 18px;
+            border: 1px solid transparent;
             text-decoration: none;
-            display: inline-flex; align-items: center; gap: 10px;
-            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.92rem;
+            font-weight: 800;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
 
-        .btn-add { background: var(--accent); color: white; }
-        .btn-edit { background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--glass-border); }
+        .btn-ui:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: #ffffff;
+            box-shadow: 0 16px 34px rgba(15, 118, 110, 0.24);
+        }
+
+        .btn-edit {
+            border-color: var(--border);
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+        }
+
+        .main-container {
+            width: min(1180px, calc(100% - 24px));
+            margin: -66px auto 0;
+            padding: 0 0 60px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .section-head h2 {
+            margin: 14px 0 0;
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(2.2rem, 4vw, 3rem);
+            line-height: 0.98;
+            letter-spacing: -0.04em;
+        }
+
+        .section-head p {
+            margin: 10px 0 0;
+            color: var(--text-muted);
+            line-height: 1.75;
+        }
+
+        .story-total {
+            display: inline-flex;
+            align-items: center;
+            min-height: 40px;
+            padding: 0 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .sexy-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 32px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            box-shadow: var(--shadow);
+            transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+        }
+
+        .sexy-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(15, 118, 110, 0.18);
+            box-shadow: 0 28px 54px rgba(2, 6, 23, 0.26);
+        }
+
+        .card-visual {
+            position: relative;
+            height: 270px;
+            overflow: hidden;
+        }
+
+        .card-visual::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 42%, rgba(4, 18, 34, 0.58) 100%);
+        }
+
+        .card-visual img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
 
         .delete-btn {
-            position: absolute; top: 15px; right: 15px;
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 2;
+            width: 42px;
+            height: 42px;
+            border: 0;
+            border-radius: 14px;
             background: rgba(239, 68, 68, 0.9);
-            color: white; border: none; width: 40px; height: 40px;
-            border-radius: 12px; cursor: pointer; z-index: 10;
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 14px 28px rgba(127, 29, 29, 0.28);
+        }
+
+        .card-info {
+            padding: 22px 22px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .card-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 34px;
+            width: fit-content;
+            padding: 0 14px;
+            border-radius: 999px;
+            background: rgba(15, 118, 110, 0.08);
+            color: var(--accent);
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .card-info h3 {
+            margin: 0;
+            font-size: 1.42rem;
+            line-height: 1.2;
+            letter-spacing: -0.04em;
+        }
+
+        .card-info p {
+            margin: 0;
+            color: var(--text-muted);
+            line-height: 1.72;
+        }
+
+        .card-actions {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .story-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 800;
+        }
+
+        .story-link:hover {
+            color: var(--warm);
+        }
+
+        .icon-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        .empty-profile {
+            padding: 54px 24px;
+            border-radius: 32px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .empty-profile h3 {
+            margin: 18px 0 0;
+            font-size: 2rem;
+            line-height: 1.05;
+            letter-spacing: -0.04em;
+        }
+
+        .empty-profile p {
+            max-width: 520px;
+            margin: 14px auto 0;
+            color: var(--text-muted);
+            line-height: 1.75;
+        }
+
+        @media (max-width: 992px) {
+            .navbar,
+            .profile-hero,
+            .main-container {
+                width: calc(100% - 20px);
+            }
+
+            .navbar {
+                border-radius: 28px;
+                align-items: flex-start;
+            }
+
+            .nav-links {
+                justify-content: flex-start;
+            }
+
+            .profile-hero {
+                min-height: auto;
+                padding: 108px 18px 80px;
+            }
+
+            .profile-glass-card {
+                padding: 34px 22px 28px;
+                border-radius: 30px;
+            }
+
+            .main-container {
+                margin-top: -48px;
+            }
+
+            .section-head {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .navbar {
+                width: calc(100% - 16px);
+                padding: 14px;
+            }
+
+            .nav-links {
+                width: 100%;
+            }
+
+            .nav-links a {
+                min-height: 40px;
+            }
+
+            .profile-hero {
+                width: calc(100% - 16px);
+                margin-top: 14px;
+                border-radius: 28px;
+                padding: 100px 14px 70px;
+            }
+
+            .avatar-container {
+                width: 120px;
+                height: 120px;
+            }
+
+            .profile-subtitle {
+                font-size: 0.96rem;
+            }
+
+            .profile-highlights,
+            .action-area,
+            .card-actions {
+                flex-direction: column;
+            }
+
+            .profile-stat,
+            .btn-ui,
+            .story-total,
+            .card-actions > * {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .main-container {
+                width: calc(100% - 16px);
+                margin-top: -34px;
+                padding-bottom: 42px;
+            }
+
+            .card-actions {
+                align-items: stretch;
+            }
         }
     </style>
 </head>
 
-<body>
+<body class="profile-page" data-theme="<?php echo $preferredTheme; ?>">
 
     <nav class="navbar">
-       <a href="index.php" class="logo">
-    <i class="fas fa-globe" style="color: black; font-size: 26px;"></i> 
-    <span style="color: #6c5ce7; font-size: 26px;">Travel </span> Blog
-</a>
+        <a href="index.php" class="logo">
+            <i class="fas fa-globe"></i>
+            <span>Travel</span>Blog
+        </a>
         <div class="nav-links">
             <a href="index.php">Home</a>
+            <?php if ($isOwner): ?>
+                <a href="edit-profile.php">Edit Profile</a>
+                <a href="add-post.php" class="nav-cta">New Story</a>
+            <?php endif; ?>
             <?php if ($isLoggedIn): ?>
                 <a href="logout.php">Logout</a>
             <?php endif; ?>
-            <div class="theme-switch-nav" onclick="toggleTheme()">
+            <button class="theme-switch-nav" type="button" onclick="toggleTheme()" aria-label="Toggle theme">
                 <i class="fas fa-moon" id="theme-icon"></i>
-            </div>
+            </button>
         </div>
     </nav>
 
@@ -239,16 +721,23 @@ $isOwner = $isLoggedIn && $_SESSION['user_id'] == $user_id;
         <div class="hero-mask"></div>
         <div class="profile-glass-card">
             <div class="avatar-container">
-                <img src="<?php echo $user['profile_photo'] ? 'uploads/'.htmlspecialchars($user['profile_photo']) : 'assets/img/default.png'; ?>" alt="User">
+                <img src="<?php echo $profilePhotoSrc; ?>" alt="<?php echo htmlspecialchars($user['name']); ?>">
             </div>
 
             <div class="profile-info">
+                <span class="profile-kicker">Traveler Profile</span>
                 <h1><?php echo htmlspecialchars($user['name']); ?></h1>
-                <p style="color: var(--accent); font-size: 1.4rem; font-weight: 600; margin-top: 10px;">Digital Nomad & Photography Enthusiast</p>
+                <p class="profile-subtitle"><?php echo htmlspecialchars($profileTagline); ?></p>
 
-                <div style="display: flex; justify-content: center; gap: 40px; margin: 35px 0;">
-                    <div style="text-align: center;"><span style="display: block; font-size: 1.8rem; font-weight: 800;"><?php echo count($posts); ?></span> <span style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Stories</span></div>
-                    <div style="text-align: center;"><span style="display: block; font-size: 1.8rem; font-weight: 800;"><?php echo date('Y', strtotime($user['created_at'])); ?></span> <span style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Member</span></div>
+                <div class="profile-highlights">
+                    <div class="profile-stat">
+                        <strong><?php echo $storyCount; ?></strong>
+                        <span>Stories</span>
+                    </div>
+                    <div class="profile-stat">
+                        <strong><?php echo $memberSince; ?></strong>
+                        <span>Member Since</span>
+                    </div>
                 </div>
 
                 <?php if ($isOwner): ?>
@@ -262,43 +751,92 @@ $isOwner = $isLoggedIn && $_SESSION['user_id'] == $user_id;
     </header>
 
     <main class="main-container">
+        <div class="section-head">
+            <div>
+                <span class="section-kicker">Latest From This Profile</span>
+                <h2>Recent Stories</h2>
+                <p>Fresh travel notes, visual memories, and places this explorer chose to publish.</p>
+            </div>
+            <span class="story-total"><?php echo $storyCount; ?> published</span>
+        </div>
+
+        <?php if (empty($posts)): ?>
+            <div class="empty-profile">
+                <span class="section-kicker">Nothing published yet</span>
+                <h3>No travel stories here yet</h3>
+                <p>This profile is ready, but the stories have not landed yet. The next trip might start the whole archive.</p>
+                <?php if ($isOwner): ?>
+                    <div class="action-area">
+                        <a href="add-post.php" class="btn-ui btn-add"><i class="fas fa-plus-circle"></i> Publish First Story</a>
+                    </div>
+                <?php endif; ?>
+            </div>
+        <?php else: ?>
         <div class="grid">
             <?php foreach ($posts as $post): ?>
                 <article class="sexy-card">
                     <?php if ($isOwner): ?>
-                        <button onclick="if(confirm('Delete permanently?')) window.location.href='delete-post.php?id=<?php echo $post['id']; ?>'" class="delete-btn">
+                        <button onclick="if(confirm('Delete permanently?')) window.location.href='delete-post.php?id=<?php echo $post['id']; ?>'" class="delete-btn" type="button">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     <?php endif; ?>
 
-                    <img src="uploads/<?php echo $post['image'] ?: 'default.jpg'; ?>" alt="Post Image">
+                    <div class="card-visual">
+                        <img src="uploads/<?php echo htmlspecialchars($post['image'] ?: 'bg_1_1775321727.jpg'); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" loading="lazy" decoding="async">
+                    </div>
                     <div class="card-info">
-                        <h3 style="font-size: 1.6rem; margin-bottom: 15px;"><?php echo htmlspecialchars($post['title']); ?></h3>
-                        <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;"><?php echo htmlspecialchars(substr($post['description'], 0, 110)); ?>...</p>
-                        <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center;">
+                        <span class="card-meta"><i class="far fa-calendar"></i><?php echo !empty($post['created_at']) ? date('M d, Y', strtotime($post['created_at'])) : 'Recent'; ?></span>
+                        <h3><?php echo htmlspecialchars($post['title']); ?></h3>
+                        <p><?php echo htmlspecialchars(substr($post['description'], 0, 110)); ?>...</p>
+                        <div class="card-actions">
                             <a href="post.php?slug=<?php echo $post['slug']; ?>" style="color: var(--accent); text-decoration: none; font-weight: 800;">READ STORY →</a>
                             <?php if ($isOwner): ?>
-                                <a href="edit-post.php?id=<?php echo $post['id']; ?>" style="color: var(--text-muted);"><i class="fas fa-pen-nib"></i></a>
+                                <a href="edit-post.php?id=<?php echo $post['id']; ?>" class="icon-link" aria-label="Edit story"><i class="fas fa-pen-nib"></i></a>
                             <?php endif; ?>
                         </div>
                     </div>
                 </article>
             <?php endforeach; ?>
         </div>
+        <?php endif; ?>
     </main>
 
     <script>
+        function syncThemeIcon() {
+            const icon = document.getElementById('theme-icon');
+            if (!icon) return;
+
+            const isLight = document.body.getAttribute('data-theme') === 'light';
+            icon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        function applySavedTheme() {
+            const storedTheme = localStorage.getItem('theme') || '<?php echo $preferredTheme; ?>';
+            document.body.setAttribute('data-theme', storedTheme === 'light' ? 'light' : 'dark');
+            syncThemeIcon();
+        }
+
+        function normalizeStoryLinks() {
+            document.querySelectorAll('.card-actions a[href^="post.php?slug="]').forEach((link) => {
+                link.className = 'story-link';
+                link.removeAttribute('style');
+                link.innerHTML = 'Read Story <i class="fas fa-arrow-right"></i>';
+            });
+        }
+
         function toggleTheme() {
             const body = document.body;
-            const icon = document.getElementById('theme-icon');
-            if (body.getAttribute('data-theme') === 'light') {
-                body.removeAttribute('data-theme');
-                icon.className = 'fas fa-moon';
-            } else {
-                body.setAttribute('data-theme', 'light');
-                icon.className = 'fas fa-sun';
-            }
+            const nextTheme = body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            body.setAttribute('data-theme', nextTheme);
+            localStorage.setItem('theme', nextTheme);
+            document.cookie = 'theme=' + nextTheme + ';path=/';
+            syncThemeIcon();
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applySavedTheme();
+            normalizeStoryLinks();
+        });
     </script>
 </body>
 </html>

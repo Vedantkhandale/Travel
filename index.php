@@ -3,15 +3,10 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 include 'includes/db.php';
+include 'includes/story_helpers.php';
 session_start();
 
-// Fetch all posts for the homepage
-$query = "SELECT posts.*, users.name as author_name FROM posts JOIN users ON posts.user_id = users.id ORDER BY created_at DESC LIMIT 12";
-$result = mysqli_query($conn, $query);
-$posts = [];
-while ($row = mysqli_fetch_assoc($result)) {
-    $posts[] = $row;
-}
+$posts = fetchHomepageStories($conn, ['limit' => 12]);
 
 function fetchSingleCount($conn, $sql)
 {
@@ -38,22 +33,6 @@ function compactCount($value)
         return number_format($number / 1000, $number >= 10000 ? 0 : 1) . 'K';
     }
     return number_format($number);
-}
-
-function formatStoryDate($value)
-{
-    $timestamp = strtotime((string) $value);
-    if (!$timestamp) {
-        return 'Just landed';
-    }
-
-    return date('M d, Y', $timestamp);
-}
-
-function estimateReadTime($text)
-{
-    $wordCount = str_word_count(strip_tags((string) $text));
-    return max(1, (int) ceil($wordCount / 45));
 }
 
 $totalStories = fetchSingleCount($conn, "SELECT COUNT(*) FROM posts");
@@ -178,6 +157,56 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
         </div>
     </section>
 
+    <section class="stories-section fade-in" id="stories">
+        <div class="container stories-container">
+            <div class="section-header stories-header">
+                <div class="section-copy">
+                    <span class="section-kicker">Editor's Feed</span>
+                    <h2 class="stories-title"><i class="fas fa-bolt"></i> Latest Stories</h2>
+                    <p class="section-subtitle">Search, sort, and filter stories instantly without reloading the page.</p>
+                </div>
+                <div class="stories-header-side">
+                    <span class="stories-status" id="storiesStatus">Fast mode on</span>
+                    <?php if ($isLoggedIn): ?>
+                        <a href="add-post.php" class="btn btn-primary stories-cta">
+                            <i class="fas fa-plus"></i> Share Your Story
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="explorer-toolbar" id="storiesToolbar">
+                <div class="explorer-controls">
+                    <label class="control-group control-sort" for="sortPosts">
+                        <span class="control-label"><i class="fas fa-arrow-up-wide-short"></i> Sort</span>
+                        <select id="sortPosts" aria-label="Sort stories">
+                            <option value="newest">Newest</option>
+                            <option value="title-asc">Title A-Z</option>
+                            <option value="title-desc">Title Z-A</option>
+                        </select>
+                    </label>
+                    <label class="control-group control-filter" for="filterPosts">
+                        <span class="control-label"><i class="fas fa-sliders"></i> Filter</span>
+                        <select id="filterPosts" aria-label="Filter stories">
+                            <option value="all">All Stories</option>
+                            <option value="with-image">With Image</option>
+                            <option value="saved">Saved Stories</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="explorer-meta">
+                    <span id="resultsCount"><?php echo count($posts); ?> <?php echo count($posts) === 1 ? 'story' : 'stories'; ?></span>
+                </div>
+            </div>
+
+            <div class="stories-grid-wrap" id="storiesGridWrap">
+                <div class="grid" id="postsGrid" aria-live="polite">
+                    <?php echo renderHomepageStoriesGrid($posts, $isLoggedIn, $_SESSION['user_id'] ?? null); ?>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="stats-section fade-in">
         <div class="stats-shell">
             <div class="section-copy section-copy-centered">
@@ -206,135 +235,6 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
             </div>
         </div>
     </section>
-
-    <div id="notificationContainer"></div>
-
-    <section class="activity-section fade-in">
-        <div class="activity-header">
-            <div class="activity-heading">
-                <span class="section-kicker">Community Radar</span>
-                <h2><i class="fas fa-location-dot"></i> Recent Activity</h2>
-                <p>Fresh saves, likes, follows, and comments from travelers who are active right now.</p>
-            </div>
-            <div class="activity-toolbar">
-                <span class="activity-live"><span class="live-dot"></span> Live updates</span>
-                <button type="button" class="btn btn-ghost activity-refresh" id="refreshActivity">
-                    <i class="fas fa-rotate-right"></i> Refresh
-                </button>
-            </div>
-        </div>
-
-        <div class="activity-feed" id="activityFeed" aria-live="polite"></div>
-    </section>
-
-    <div class="container fade-in">
-        <div class="section-header stories-header">
-            <div class="section-copy">
-                <span class="section-kicker">Editor's Feed</span>
-                <h2 class="stories-title"><i class="fas fa-bolt"></i> Latest Stories</h2>
-                <p class="section-subtitle">New photo journals, honest write-ups, and destinations worth bookmarking.</p>
-            </div>
-            <?php if ($isLoggedIn): ?>
-                <a href="add-post.php" class="btn btn-primary stories-cta">
-                    <i class="fas fa-plus"></i> Share Your Story
-                </a>
-            <?php endif; ?>
-        </div>
-
-        <div class="explorer-toolbar">
-            <div class="explorer-controls">
-                <label class="control-group control-sort" for="sortPosts">
-                    <span class="control-label"><i class="fas fa-arrow-up-wide-short"></i> Sort</span>
-                    <select id="sortPosts" aria-label="Sort stories">
-                        <option value="newest">Newest</option>
-                        <option value="title-asc">Title A-Z</option>
-                        <option value="title-desc">Title Z-A</option>
-                    </select>
-                </label>
-                <label class="control-group control-filter" for="filterPosts">
-                    <span class="control-label"><i class="fas fa-sliders"></i> Filter</span>
-                    <select id="filterPosts" aria-label="Filter stories">
-                        <option value="all">All Stories</option>
-                        <option value="with-image">With Image</option>
-                        <option value="saved">Saved Stories</option>
-                    </select>
-                </label>
-            </div>
-            <div class="explorer-meta">
-                <span id="resultsCount">0 stories</span>
-            </div>
-        </div>
-
-        <div class="grid" id="postsGrid">
-            <?php if (empty($posts)): ?>
-                <div class="empty-state">
-                    <span class="section-kicker">Quiet for now</span>
-                    <h3>No stories yet</h3>
-                    <p>Be the first one to drop a travel memory worth reading.</p>
-                    <?php if ($isLoggedIn): ?>
-                        <a href="add-post.php" class="btn btn-primary empty-state-cta">
-                            Start Writing
-                        </a>
-                    <?php endif; ?>
-                </div>
-            <?php else: ?>
-                <?php foreach ($posts as $post): ?>
-                    <?php
-                    $storyType = !empty($post['image']) ? 'Photo Story' : 'Travel Note';
-                    $storyDate = formatStoryDate($post['created_at'] ?? '');
-                    $readTime = estimateReadTime($post['description'] ?? '');
-                    ?>
-                    <div class="card" id="post-<?php echo $post['id']; ?>" data-post-id="<?php echo $post['id']; ?>" data-title="<?php echo htmlspecialchars($post['title']); ?>" data-description="<?php echo htmlspecialchars($post['description']); ?>" data-author="<?php echo htmlspecialchars($post['author_name']); ?>" data-has-image="<?php echo !empty($post['image']) ? '1' : '0'; ?>">
-                        <div class="card-img">
-                            <?php if (!empty($post['image'])): ?>
-                                <img src="uploads/<?php echo htmlspecialchars($post['image']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
-                            <?php else: ?>
-                                <img src="https://via.placeholder.com/350x260?text=Travel+Story" alt="placeholder">
-                            <?php endif; ?>
-                            <div class="card-overlay-meta">
-                                <span class="story-badge"><?php echo $storyType; ?></span>
-                                <span class="story-meta-chip"><i class="far fa-clock"></i><?php echo $readTime; ?> min read</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="story-topline">
-                                <span class="story-chip"><i class="far fa-calendar"></i><?php echo $storyDate; ?></span>
-                            </div>
-                            <h3>
-                                <a href="post.php?slug=<?php echo htmlspecialchars($post['slug']); ?>" class="card-title-link">
-                                    <?php echo htmlspecialchars(substr($post['title'], 0, 50)); ?>
-                                </a>
-                            </h3>
-                            <p class="story-excerpt"><?php echo htmlspecialchars(substr($post['description'], 0, 100)); ?>...</p>
-                            <p class="author"><i class="far fa-user"></i> By <a href="profile.php?user_id=<?php echo $post['user_id']; ?>"><?php echo htmlspecialchars($post['author_name']); ?></a></p>
-                        </div>
-                        <div class="card-footer premium-card-footer">
-                            <div class="stats footer-stats">
-                                <button type="button" class="stat-item like-btn" data-post-id="<?php echo $post['id']; ?>" aria-label="Like post">
-                                    <i class="far fa-heart"></i>
-                                    <span class="like-count">0</span>
-                                </button>
-                                <button type="button" class="stat-item comment-btn" data-post-id="<?php echo $post['id']; ?>" aria-label="Add comment">
-                                    <i class="far fa-comment"></i>
-                                    <span class="comment-count">0</span>
-                                </button>
-                            </div>
-                            <div class="card-actions footer-actions">
-                                <button type="button" class="btn btn-ghost save-btn" data-post-id="<?php echo $post['id']; ?>" aria-label="Save post">
-                                    <i class="far fa-bookmark"></i>Save
-                                </button>
-                                <?php if ($isLoggedIn && $_SESSION['user_id'] == $post['user_id']): ?>
-                                    <a href="edit-post.php?id=<?php echo $post['id']; ?>" class="btn btn-secondary"><i class="fas fa-edit"></i>Edit</a>
-                                <?php else: ?>
-                                    <button class="btn btn-secondary disabled" title="Only the author can edit"><i class="fas fa-edit"></i>Edit</button>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-    </div>
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="Back to top">
         <i class="fas fa-arrow-up"></i>
@@ -439,6 +339,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
         </div>
     </footer>
 
-    <script src="assets/js/index.js?v=10"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="assets/js/index.fast.js?v=1"></script>
 </body>
 </html>
