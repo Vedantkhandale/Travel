@@ -692,6 +692,111 @@ $profileTagline = $isOwner
                 align-items: stretch;
             }
         }
+
+        /* Reference-inspired smooth pass */
+        body.profile-page {
+            --accent: #6366f1;
+            --accent-strong: #8b5cf6;
+            --warm: #38bdf8;
+            background:
+                radial-gradient(circle at top left, rgba(99, 102, 241, 0.14), transparent 28%),
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent 34%),
+                linear-gradient(180deg, var(--bg-color) 0%, var(--bg-accent) 100%);
+        }
+
+        [data-theme="light"].profile-page {
+            background:
+                radial-gradient(circle at top left, rgba(99, 102, 241, 0.12), transparent 28%),
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.08), transparent 34%),
+                linear-gradient(180deg, #eef4ff 0%, #f8fbff 44%, #eff2ff 100%);
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(129, 140, 248, 0.14);
+        }
+
+        [data-theme="light"] .navbar {
+            background: rgba(255, 255, 255, 0.72);
+            border-color: rgba(99, 102, 241, 0.1);
+        }
+
+        .nav-links a:hover,
+        .theme-switch-nav:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: #6366f1;
+        }
+
+        .nav-links .nav-cta,
+        .btn-add {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            box-shadow: 0 16px 34px rgba(99, 102, 241, 0.24);
+        }
+
+        .profile-hero {
+            box-shadow: 0 28px 64px rgba(2, 6, 23, 0.28);
+        }
+
+        .hero-mask {
+            background:
+                linear-gradient(115deg, rgba(15, 23, 42, 0.84), rgba(15, 23, 42, 0.42) 48%, rgba(15, 23, 42, 0.78)),
+                linear-gradient(180deg, rgba(15, 23, 42, 0.08) 0%, var(--bg-color) 100%);
+        }
+
+        .profile-glass-card {
+            background: rgba(15, 23, 42, 0.26);
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 30px 70px rgba(2, 6, 23, 0.22);
+        }
+
+        [data-theme="light"] .profile-glass-card {
+            background: rgba(255, 255, 255, 0.24);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .profile-kicker,
+        .section-kicker,
+        .card-meta,
+        .story-total {
+            border-color: rgba(129, 140, 248, 0.16);
+            background: rgba(99, 102, 241, 0.08);
+            color: #c7d2fe;
+        }
+
+        [data-theme="light"] .profile-kicker,
+        [data-theme="light"] .section-kicker,
+        [data-theme="light"] .card-meta,
+        [data-theme="light"] .story-total {
+            color: #4f46e5;
+        }
+
+        .profile-stat,
+        .sexy-card,
+        .empty-profile {
+            border-color: rgba(129, 140, 248, 0.14);
+            box-shadow: 0 20px 46px rgba(2, 6, 23, 0.2);
+        }
+
+        [data-theme="light"] .profile-stat,
+        [data-theme="light"] .sexy-card,
+        [data-theme="light"] .empty-profile {
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+        }
+
+        .sexy-card:hover {
+            transform: translateY(-7px);
+            border-color: rgba(129, 140, 248, 0.18);
+            box-shadow: 0 26px 52px rgba(2, 6, 23, 0.24);
+        }
+
+        .story-link,
+        .icon-link:hover {
+            color: #6366f1;
+        }
+
+        .card-visual::after {
+            background: linear-gradient(180deg, transparent 40%, rgba(15, 23, 42, 0.54) 100%);
+        }
     </style>
 </head>
 
@@ -789,7 +894,7 @@ $profileTagline = $isOwner
                         <h3><?php echo htmlspecialchars($post['title']); ?></h3>
                         <p><?php echo htmlspecialchars(substr($post['description'], 0, 110)); ?>...</p>
                         <div class="card-actions">
-                            <a href="post.php?slug=<?php echo $post['slug']; ?>" style="color: var(--accent); text-decoration: none; font-weight: 800;">READ STORY →</a>
+                            <a href="post.php?slug=<?php echo htmlspecialchars($post['slug']); ?>" class="story-link">Read Story <i class="fas fa-arrow-right"></i></a>
                             <?php if ($isOwner): ?>
                                 <a href="edit-post.php?id=<?php echo $post['id']; ?>" class="icon-link" aria-label="Edit story"><i class="fas fa-pen-nib"></i></a>
                             <?php endif; ?>
@@ -816,14 +921,6 @@ $profileTagline = $isOwner
             syncThemeIcon();
         }
 
-        function normalizeStoryLinks() {
-            document.querySelectorAll('.card-actions a[href^="post.php?slug="]').forEach((link) => {
-                link.className = 'story-link';
-                link.removeAttribute('style');
-                link.innerHTML = 'Read Story <i class="fas fa-arrow-right"></i>';
-            });
-        }
-
         function toggleTheme() {
             const body = document.body;
             const nextTheme = body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
@@ -835,7 +932,6 @@ $profileTagline = $isOwner
 
         document.addEventListener('DOMContentLoaded', () => {
             applySavedTheme();
-            normalizeStoryLinks();
         });
     </script>
 </body>
