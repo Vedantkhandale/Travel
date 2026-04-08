@@ -71,7 +71,7 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <link rel="stylesheet" href="assets/css/index.css?v=3">
-    <link rel="stylesheet" href="assets/css/enhance.css?v=37">
+    <link rel="stylesheet" href="assets/css/enhance.css?v=40">
    
 
    
@@ -113,15 +113,13 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
     </nav>
 
     <section class="hero">
-        <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="https://images.unsplash.com/photo-1488085061387-422e29b40080?auto=format&fit=crop&w=2100&q=80" aria-hidden="true">
-            <source src="assets/videos/hero.mp4" type="video/mp4">
-            <source src="https://cdn.coverr.co/videos/coverr-aerial-view-of-a-mountain-road-1579/1080p.mp4" type="video/mp4">
+        <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="assets/videos/hero-poster.avif" aria-hidden="true">
+            <source src="assets/videos/heroo.mp4" type="video/mp4">
         </video>
         <div class="hero-shell">
-            <span class="hero-kicker">Travel stories with stronger visuals, sharper copy, and real-world energy.</span>
-            <h1>Collect Places That Stay With You.</h1>
-            <h2 class="typing-text">Tell them beautifully.</h2>
-            <p>Build a travel journal that feels cinematic, personal, and worth revisiting long after the flight home.</p>
+            <span class="hero-kicker">Simple, smooth, and story-first travel.</span>
+            <h1>Travel Stories That Feel Alive.</h1>
+            <p>Watch the road move, search a place, and jump straight into sharp travel stories without the clutter.</p>
 
             <div class="search-box">
                 <i class="fas fa-search"></i>
@@ -133,7 +131,7 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
                 <?php if ($isLoggedIn): ?>
                     <a href="add-post.php" class="btn btn-secondary"><i class="fas fa-pen-to-square"></i> Write a Story</a>
                 <?php else: ?>
-                    <a href="login.php" class="btn btn-secondary"><i class="fas fa-right-to-bracket"></i> Login</a>
+                    <a href="signup.php" class="btn btn-secondary"><i class="fas fa-user-plus"></i> Join Free</a>
                 <?php endif; ?>
             </div>
 
@@ -141,19 +139,6 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
                 <span class="hero-pill"><i class="fas fa-book-open"></i> <?php echo compactCount($totalStories); ?> Stories</span>
                 <span class="hero-pill"><i class="fas fa-compass"></i> <?php echo number_format($destinations); ?> Destinations</span>
                 <span class="hero-pill"><i class="fas fa-users"></i> <?php echo number_format($communities); ?> Communities</span>
-            </div>
-        </div>
-
-        <div class="hero-spotlight" aria-hidden="true">
-            <div class="spotlight-card spotlight-card-primary">
-                <span class="spotlight-label">Trending now</span>
-                <strong>Slow travel diaries</strong>
-                <p>Photo-first stories, local food trails, and sunrise journals with real texture.</p>
-            </div>
-            <div class="spotlight-card spotlight-card-secondary">
-                <span class="spotlight-label">Community pulse</span>
-                <strong><?php echo compactCount($onlineUsers); ?> explorers online</strong>
-                <p>Fresh drops, saves, and comments are landing across the map right now.</p>
             </div>
         </div>
     </section>
@@ -341,6 +326,6 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="assets/js/index.fast.js?v=2"></script>
+    <script src="assets/js/index.fast.js?v=3"></script>
 </body>
 </html>

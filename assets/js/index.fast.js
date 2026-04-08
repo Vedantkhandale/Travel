@@ -624,26 +624,6 @@ function setupStoryInteractions() {
     });
 }
 
-function initHeroTyping() {
-    const typingElement = document.querySelector('.typing-text');
-    if (!typingElement) return;
-
-    const text = (typingElement.textContent || '').trim();
-    if (!text) return;
-
-    typingElement.textContent = '';
-
-    let index = 0;
-    const typeNext = () => {
-        if (index >= text.length) return;
-        typingElement.textContent += text.charAt(index);
-        index += 1;
-        setTimeout(typeNext, 75);
-    };
-
-    setTimeout(typeNext, 260);
-}
-
 function setupRevealAnimations() {
     const elements = document.querySelectorAll('.fade-in');
     if (!('IntersectionObserver' in window)) {
@@ -673,7 +653,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupStoryInteractions();
     setupRevealAnimations();
     syncStoryCardState();
-    initHeroTyping();
     updateResultsCount(document.querySelectorAll('#postsGrid .card').length);
     setStoriesStatus('Fast mode on', 'success');
 });
