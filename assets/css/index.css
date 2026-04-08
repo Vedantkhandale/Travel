@@ -1347,29 +1347,7 @@ transform: translateY(-50%) scale(1.1);
 
 
 
-/* Typing Animation for Hero Text */
-
-.hero h1::after {
-
-content: '|';
-
-animation: blink 1s infinite;
-
-color: var(--primary);
-
-margin-left: 5px;
-
-}
-
-
-
-@keyframes blink {
-
-0%, 50% { opacity: 1; }
-
-51%, 100% { opacity: 0; }
-
-}
+/* Keep hero heading clean without typing cursor */
 
 
 

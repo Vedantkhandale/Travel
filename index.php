@@ -23,18 +23,6 @@ function fetchSingleCount($conn, $sql)
     return (int) $row[0];
 }
 
-function compactCount($value)
-{
-    $number = max(0, (int) $value);
-    if ($number >= 1000000) {
-        return number_format($number / 1000000, $number >= 10000000 ? 0 : 1) . 'M';
-    }
-    if ($number >= 1000) {
-        return number_format($number / 1000, $number >= 10000 ? 0 : 1) . 'K';
-    }
-    return number_format($number);
-}
-
 $totalStories = fetchSingleCount($conn, "SELECT COUNT(*) FROM posts");
 $communities = fetchSingleCount($conn, "SELECT COUNT(*) FROM users");
 $destinations = fetchSingleCount($conn, "SELECT COUNT(*) FROM posts WHERE image IS NOT NULL AND image <> ''");
@@ -63,15 +51,15 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TravelBlog - Stories Worth Packing</title>
-    <meta name="description" content="Discover sharp travel stories, cinematic photo journals, and a community that makes every destination feel alive.">
+    <title>TravelBlog - Simple Travel Stories</title>
+    <meta name="description" content="Read clean travel stories, photo journals, and destination notes in a fast, smooth, premium space.">
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <link rel="stylesheet" href="assets/css/index.css?v=3">
-    <link rel="stylesheet" href="assets/css/enhance.css?v=40">
+    <link rel="stylesheet" href="assets/css/enhance.css?v=46">
    
 
    
@@ -117,13 +105,13 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
             <source src="assets/videos/heroo.mp4" type="video/mp4">
         </video>
         <div class="hero-shell">
-            <span class="hero-kicker">Simple, smooth, and story-first travel.</span>
-            <h1>Travel Stories That Feel Alive.</h1>
-            <p>Watch the road move, search a place, and jump straight into sharp travel stories without the clutter.</p>
+            <span class="hero-kicker">Fast, simple travel stories.</span>
+            <h1>Stories That Feel Smooth.</h1>
+            <p>Search a place and start reading premium travel stories in seconds.</p>
 
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Search stories, cities, coastlines, creators...">
+                <input type="text" id="searchInput" placeholder="Search places or stories">
             </div>
 
             <div class="hero-cta">
@@ -136,9 +124,27 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
             </div>
 
             <div class="hero-pills" aria-label="Hero highlights">
-                <span class="hero-pill"><i class="fas fa-book-open"></i> <?php echo compactCount($totalStories); ?> Stories</span>
+                <span class="hero-pill"><i class="fas fa-book-open"></i> <?php echo number_format($totalStories); ?> Stories</span>
                 <span class="hero-pill"><i class="fas fa-compass"></i> <?php echo number_format($destinations); ?> Destinations</span>
-                <span class="hero-pill"><i class="fas fa-users"></i> <?php echo number_format($communities); ?> Communities</span>
+                <span class="hero-pill"><i class="fas fa-users"></i> <?php echo number_format($communities); ?> Travelers</span>
+            </div>
+
+            <div class="hero-cards" aria-label="Hero quick cards">
+                <article class="hero-mini-card">
+                    <h3>Latest travel drops</h3>
+                    <p>Fresh stories from the community, updated live.</p>
+                    <a href="#postsGrid" class="hero-mini-link"><i class="fas fa-arrow-right"></i> View Stories</a>
+                </article>
+
+                <article class="hero-mini-card">
+                    <h3>Publish your next trip</h3>
+                    <p>Share your photo story with clean, fast cards.</p>
+                    <?php if ($isLoggedIn): ?>
+                        <a href="add-post.php" class="hero-mini-link"><i class="fas fa-pen-nib"></i> Write Story</a>
+                    <?php else: ?>
+                        <a href="login.php" class="hero-mini-link"><i class="fas fa-right-to-bracket"></i> Login to Write</a>
+                    <?php endif; ?>
+                </article>
             </div>
         </div>
     </section>
@@ -147,12 +153,12 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
         <div class="container stories-container">
             <div class="section-header stories-header">
                 <div class="section-copy">
-                    <span class="section-kicker">Editor's Feed</span>
-                    <h2 class="stories-title"><i class="fas fa-bolt"></i> Latest Stories</h2>
-                    <p class="section-subtitle">Search, sort, and filter stories instantly without reloading the page.</p>
+                    <span class="section-kicker">Latest Stories</span>
+                    <h2 class="stories-title">Latest Stories</h2>
+                    <p class="section-subtitle">Fresh travel stories you can search, sort, and read instantly.</p>
                 </div>
                 <div class="stories-header-side">
-                    <span class="stories-status" id="storiesStatus">Fast mode on</span>
+                    <span class="stories-status" id="storiesStatus">Ready to explore</span>
                     <?php if ($isLoggedIn): ?>
                         <a href="add-post.php" class="btn btn-primary stories-cta">
                             <i class="fas fa-plus"></i> Share Your Story
@@ -196,9 +202,9 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
     <section class="stats-section fade-in">
         <div class="stats-shell">
             <div class="section-copy section-copy-centered">
-                <span class="section-kicker">Live Snapshot</span>
-                <h2>Fresh movement across the map</h2>
-                <p class="section-subtitle">A quick pulse check on what the community is publishing, saving, and reading right now.</p>
+                <span class="section-kicker">Community Snapshot</span>
+                <h2>A quick look around</h2>
+                <p class="section-subtitle">See what people are sharing, reading, and saving across the site.</p>
             </div>
 
             <div class="stats-grid">
@@ -228,40 +234,40 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
 
     <section class="categories-section fade-in" id="categories">
         <div class="section-copy section-copy-centered">
-            <span class="section-kicker">Pick A Mood</span>
-            <h2 class="section-title"><i class="fas fa-compass"></i> Popular Categories</h2>
-            <p class="section-subtitle">Jump into the vibe you want, then let the stories narrow themselves down.</p>
+            <span class="section-kicker">Explore</span>
+            <h2 class="section-title">Browse by Category</h2>
+            <p class="section-subtitle">Pick a mood and jump straight into the right stories.</p>
         </div>
         <div class="categories-grid">
             <div class="category-card" data-query="beach island coast" data-label="Beach Destinations">
                 <div class="category-icon"><i class="fas fa-umbrella-beach"></i></div>
                 <h3>Beach Destinations</h3>
-                <p>Salt air, golden hour swims, and coastlines worth missing flights for.</p>
+                <p>Coastal stories, sunsets, and easy days by the water.</p>
             </div>
             <div class="category-card" data-query="mountain trek alpine" data-label="Mountain Adventures">
                 <div class="category-icon"><i class="fas fa-mountain"></i></div>
                 <h3>Mountain Adventures</h3>
-                <p>Ridges, cabin mornings, and trails that reset your head.</p>
+                <p>Treks, cabins, cold air, and high trails.</p>
             </div>
             <div class="category-card" data-query="city urban skyline" data-label="City Exploration">
                 <div class="category-icon"><i class="fas fa-city"></i></div>
                 <h3>City Exploration</h3>
-                <p>Street food, skylines, hidden bars, and neighborhoods with character.</p>
+                <p>Street food, skylines, and neighborhoods with character.</p>
             </div>
             <div class="category-card" data-query="jungle forest wildlife" data-label="Jungle Trails">
                 <div class="category-icon"><i class="fas fa-tree"></i></div>
                 <h3>Jungle Trails</h3>
-                <p>Dense greens, wild soundscapes, and off-grid adrenaline.</p>
+                <p>Off-grid routes, dense greens, and wild energy.</p>
             </div>
             <div class="category-card" data-query="history heritage ancient" data-label="Historical Sites">
                 <div class="category-icon"><i class="fas fa-landmark"></i></div>
                 <h3>Historical Sites</h3>
-                <p>Places with texture, memory, and stories older than maps.</p>
+                <p>Old places, deep memory, and timeless details.</p>
             </div>
             <div class="category-card" data-query="food culture cuisine" data-label="Food and Culture">
                 <div class="category-icon"><i class="fas fa-utensils"></i></div>
                 <h3>Food & Culture</h3>
-                <p>Local plates, late-night markets, and culture you can taste.</p>
+                <p>Local plates, markets, and stories shaped by culture.</p>
             </div>
         </div>
     </section>
@@ -272,7 +278,7 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
                 <a href="index.php" class="footer-logo">
                     <i class="fas fa-globe"></i> <span>Travel</span>Blog
                 </a>
-                <p class="footer-text">A sharper home for destination stories, photo journals, and the kind of travel memories worth keeping alive.</p>
+                <p class="footer-text">Clean travel stories, strong visuals, and memories worth keeping.</p>
                 <div class="social-icons">
                     <a href="https://facebook.com" class="social-btn" title="Facebook" target="_blank" rel="noopener noreferrer">
                         <i class="fab fa-facebook-f"></i>
@@ -294,7 +300,7 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
                 <ul class="footer-links">
                     <li><a href="index.php"><i class="fas fa-house"></i> Home</a></li>
                     <li><a href="#categories"><i class="fas fa-compass"></i> Categories</a></li>
-                    <li><a href="<?php echo $isLoggedIn ? 'add-post.php' : 'login.php'; ?>"><i class="fas fa-pen-to-square"></i> Add Post</a></li>
+                    <li><a href="<?php echo $isLoggedIn ? 'add-post.php' : 'login.php'; ?>"><i class="fas fa-pen-to-square"></i> Write Story</a></li>
                 </ul>
             </div>
 
@@ -309,7 +315,7 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
 
             <div class="footer-col">
                 <h4>Newsletter</h4>
-                <p class="footer-text">One sharp travel drop every week. Pure inspiration, zero spam.</p>
+                <p class="footer-text">One good travel story a week. No spam.</p>
                 <form class="footer-form" id="newsletterForm" novalidate>
                     <input type="email" id="newsletterEmail" name="newsletter_email" placeholder="you@example.com" aria-label="Email address" autocomplete="email" required>
                     <button class="btn btn-primary" type="submit">Subscribe</button>
@@ -320,12 +326,12 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
         <div class="footer-bottom">
             <div class="footer-bottom-inner">
                 <span>&copy; <?php echo date('Y'); ?> TravelBlog</span>
-                <span>Built for explorers with taste.</span>
+                <span>Made for modern travel stories.</span>
             </div>
         </div>
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="assets/js/index.fast.js?v=3"></script>
+    <script src="assets/js/index.fast.js?v=7"></script>
 </body>
 </html>

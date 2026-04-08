@@ -212,7 +212,7 @@ function setupNavbarAndMenu() {
     });
 
     window.addEventListener('resize', () => {
-        if (window.innerWidth > 992) {
+        if (window.innerWidth > 1200) {
             closeMenu();
         }
     });
@@ -247,10 +247,10 @@ function applyStoryResponse(response, showToast) {
 
     const count = Number(response.count) || 0;
     updateResultsCount(count);
-    setStoriesStatus(count > 0 ? 'Stories updated instantly' : 'No stories found', count > 0 ? 'success' : 'empty');
+    setStoriesStatus(count > 0 ? 'Updated just now' : 'No stories found', count > 0 ? 'success' : 'empty');
 
     if (showToast) {
-        toastNotification(count > 0 ? 'Stories updated' : 'No stories found');
+        toastNotification(count > 0 ? 'Stories refreshed' : 'No stories found');
     }
 }
 
@@ -654,5 +654,5 @@ document.addEventListener('DOMContentLoaded', () => {
     setupRevealAnimations();
     syncStoryCardState();
     updateResultsCount(document.querySelectorAll('#postsGrid .card').length);
-    setStoriesStatus('Fast mode on', 'success');
+    setStoriesStatus('Ready to explore', 'success');
 });
