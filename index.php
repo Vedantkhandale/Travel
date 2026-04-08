@@ -30,7 +30,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <link rel="stylesheet" href="assets/css/index.css?v=3">
-    <link rel="stylesheet" href="assets/css/enhance.css?v=3">
+    <link rel="stylesheet" href="assets/css/enhance.css?v=14">
    
 
    
@@ -92,19 +92,10 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
             <?php endif; ?>
         </div>
 
-        <div class="hero-metrics" aria-label="Travel highlights">
-            <div class="hero-metric">
-                <span class="hero-metric-value">12K+</span>
-                <span class="hero-metric-label">Stories</span>
-            </div>
-            <div class="hero-metric">
-                <span class="hero-metric-value">89</span>
-                <span class="hero-metric-label">Destinations</span>
-            </div>
-            <div class="hero-metric">
-                <span class="hero-metric-value">156</span>
-                <span class="hero-metric-label">Communities</span>
-            </div>
+        <div class="hero-pills" aria-label="Hero highlights">
+            <span class="hero-pill"><i class="fas fa-book-open"></i> 12K+ Stories</span>
+            <span class="hero-pill"><i class="fas fa-compass"></i> 89 Destinations</span>
+            <span class="hero-pill"><i class="fas fa-users"></i> 156 Communities</span>
         </div>
     </section>
 
@@ -141,16 +132,6 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
             </div>
     </section>
 
-    <section class="slider-section scale-in">
-        <div class="slider-wrapper">
-            <div class="slides">
-                <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&h=550" alt="Travel 1">
-                <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1200&h=550" alt="Travel 2">
-                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1200&h=550" alt="Travel 3">
-            </div>
-        </div>
-    </section>
-
     <div class="container fade-in">
         <div class="section-header">
             <h2><i class="fas fa-bolt"></i> Latest Stories</h2>
@@ -163,17 +144,17 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 
         <div class="explorer-toolbar">
             <div class="explorer-controls">
-                <label>
-                    Sort
-                    <select id="sortPosts">
+                <label class="control-group control-sort" for="sortPosts">
+                    <span class="control-label"><i class="fas fa-arrow-up-wide-short"></i> Sort</span>
+                    <select id="sortPosts" aria-label="Sort stories">
                         <option value="newest">Newest</option>
                         <option value="title-asc">Title A-Z</option>
                         <option value="title-desc">Title Z-A</option>
                     </select>
                 </label>
-                <label>
-                    Filter
-                    <select id="filterPosts">
+                <label class="control-group control-filter" for="filterPosts">
+                    <span class="control-label"><i class="fas fa-sliders"></i> Filter</span>
+                    <select id="filterPosts" aria-label="Filter stories">
                         <option value="all">All Stories</option>
                         <option value="with-image">With Image</option>
                         <option value="saved">Saved Stories</option>
@@ -207,12 +188,16 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
                             <?php endif; ?>
                         </div>
                         <div class="card-body">
-                            <h3><?php echo htmlspecialchars(substr($post['title'], 0, 50)); ?></h3>
+                            <h3>
+                                <a href="post.php?slug=<?php echo htmlspecialchars($post['slug']); ?>" class="card-title-link">
+                                    <?php echo htmlspecialchars(substr($post['title'], 0, 50)); ?>
+                                </a>
+                            </h3>
                             <p><?php echo htmlspecialchars(substr($post['description'], 0, 100)); ?>...</p>
                             <p class="author">By <a href="profile.php?user_id=<?php echo $post['user_id']; ?>"><?php echo htmlspecialchars($post['author_name']); ?></a></p>
                         </div>
-                        <div class="card-footer">
-                            <div class="stats">
+                        <div class="card-footer premium-card-footer">
+                            <div class="stats footer-stats">
                                 <button type="button" class="stat-item like-btn" data-post-id="<?php echo $post['id']; ?>" aria-label="Like post">
                                     <i class="far fa-heart"></i>
                                     <span class="like-count">0</span>
@@ -222,8 +207,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
                                     <span class="comment-count">0</span>
                                 </button>
                             </div>
-                            <div class="card-actions">
-                                <a href="post.php?slug=<?php echo htmlspecialchars($post['slug']); ?>" class="btn btn-ghost"><i class="fas fa-book-open"></i>Read</a>
+                            <div class="card-actions footer-actions">
                                 <button type="button" class="btn btn-ghost save-btn" data-post-id="<?php echo $post['id']; ?>" aria-label="Save post">
                                     <i class="far fa-bookmark"></i>Save
                                 </button>
@@ -333,12 +317,12 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 
         <div class="footer-bottom">
             <div class="footer-bottom-inner">
-                <span>© <?php echo date('Y'); ?> TravelBlog</span>
+                <span>&copy; <?php echo date('Y'); ?> TravelBlog</span>
                 <span>Built for explorers.</span>
             </div>
         </div>
     </footer>
 
-    <script src="assets/js/index.js"></script>
+    <script src="assets/js/index.js?v=2"></script>
 </body>
 </html>

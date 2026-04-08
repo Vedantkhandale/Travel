@@ -499,6 +499,45 @@ function setupCardButtons() {
     });
 }
 
+function setupCardHoverEnhancements() {
+    const cards = document.querySelectorAll('#postsGrid .card');
+
+    cards.forEach((card) => {
+        if (card.dataset.hoverEnhanceBound !== '1') {
+            card.dataset.hoverEnhanceBound = '1';
+
+            card.addEventListener('mousemove', (event) => {
+                const rect = card.getBoundingClientRect();
+                if (!rect.width || !rect.height) return;
+
+                const x = ((event.clientX - rect.left) / rect.width) * 100;
+                const y = ((event.clientY - rect.top) / rect.height) * 100;
+                card.style.setProperty('--pointer-x', x.toFixed(1) + '%');
+                card.style.setProperty('--pointer-y', y.toFixed(1) + '%');
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.removeProperty('--pointer-x');
+                card.style.removeProperty('--pointer-y');
+            });
+        }
+
+        const imageWrap = card.querySelector('.card-img');
+        if (!imageWrap || imageWrap.dataset.quickLikeBound === '1') return;
+
+        imageWrap.dataset.quickLikeBound = '1';
+        imageWrap.addEventListener('dblclick', (event) => {
+            event.preventDefault();
+            const likeBtn = card.querySelector('.like-btn');
+            if (!likeBtn) return;
+
+            likeBtn.click();
+            imageWrap.classList.add('quick-liked');
+            setTimeout(() => imageWrap.classList.remove('quick-liked'), 420);
+        });
+    });
+}
+
 function populateActivityFeed() {
     const feed = document.getElementById('activityFeed');
     if (!feed) return;
@@ -654,6 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSaveButtons();
     setupNotifications();
     setupCardButtons();
+    setupCardHoverEnhancements();
     hydrateSavedCardStats();
     populateActivityFeed();
     setupBackToTop();
