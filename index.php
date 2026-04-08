@@ -40,6 +40,22 @@ function compactCount($value)
     return number_format($number);
 }
 
+function formatStoryDate($value)
+{
+    $timestamp = strtotime((string) $value);
+    if (!$timestamp) {
+        return 'Just landed';
+    }
+
+    return date('M d, Y', $timestamp);
+}
+
+function estimateReadTime($text)
+{
+    $wordCount = str_word_count(strip_tags((string) $text));
+    return max(1, (int) ceil($wordCount / 45));
+}
+
 $totalStories = fetchSingleCount($conn, "SELECT COUNT(*) FROM posts");
 $communities = fetchSingleCount($conn, "SELECT COUNT(*) FROM users");
 $destinations = fetchSingleCount($conn, "SELECT COUNT(*) FROM posts WHERE image IS NOT NULL AND image <> ''");
@@ -67,13 +83,15 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TravelBlog - Explore The World</title>
+    <title>TravelBlog - Stories Worth Packing</title>
+    <meta name="description" content="Discover sharp travel stories, cinematic photo journals, and a community that makes every destination feel alive.">
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <link rel="stylesheet" href="assets/css/index.css?v=3">
-    <link rel="stylesheet" href="assets/css/enhance.css?v=35">
+    <link rel="stylesheet" href="assets/css/enhance.css?v=36">
    
 
    
@@ -96,10 +114,12 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
             <a href="index.php">Home</a>
             <a href="#categories">Categories</a>
             <?php if ($isLoggedIn): ?>
-                <a href="add-post.php">Add Post</a> <a href="edit-profile.php">Edit Profile</a> <a href="logout.php">Logout</a>
+                <a href="add-post.php" class="nav-highlight">Write Story</a>
+                <a href="edit-profile.php">Edit Profile</a>
+                <a href="logout.php">Logout</a>
             <?php else: ?>
-                <a href="login.php">Login</a>
-                <a href="signup.php">Signup</a>
+                <a href="login.php" class="nav-login">Login</a>
+                <a href="signup.php" class="nav-signup">Join Free</a>
             <?php endif; ?>
         </div>
 
@@ -117,48 +137,72 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
             <source src="assets/videos/hero.mp4" type="video/mp4">
             <source src="https://cdn.coverr.co/videos/coverr-aerial-view-of-a-mountain-road-1579/1080p.mp4" type="video/mp4">
         </video>
-        <h1>The World Is Yours</h1>
-        <h2 class="typing-text">To Discover.</h2>
-        <p>Document your memories, share hidden gems, and get inspired by a global community of modern-day explorers.</p>
+        <div class="hero-shell">
+            <span class="hero-kicker">Travel stories with stronger visuals, sharper copy, and real-world energy.</span>
+            <h1>Collect Places That Stay With You.</h1>
+            <h2 class="typing-text">Tell them beautifully.</h2>
+            <p>Build a travel journal that feels cinematic, personal, and worth revisiting long after the flight home.</p>
 
-        <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Search posts, destinations, stories...">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search stories, cities, coastlines, creators...">
+            </div>
+
+            <div class="hero-cta">
+                <a href="#postsGrid" class="btn btn-primary"><i class="fas fa-compass"></i> Explore Stories</a>
+                <?php if ($isLoggedIn): ?>
+                    <a href="add-post.php" class="btn btn-secondary"><i class="fas fa-pen-to-square"></i> Write a Story</a>
+                <?php else: ?>
+                    <a href="login.php" class="btn btn-secondary"><i class="fas fa-right-to-bracket"></i> Login</a>
+                <?php endif; ?>
+            </div>
+
+            <div class="hero-pills" aria-label="Hero highlights">
+                <span class="hero-pill"><i class="fas fa-book-open"></i> <?php echo compactCount($totalStories); ?> Stories</span>
+                <span class="hero-pill"><i class="fas fa-compass"></i> <?php echo number_format($destinations); ?> Destinations</span>
+                <span class="hero-pill"><i class="fas fa-users"></i> <?php echo number_format($communities); ?> Communities</span>
+            </div>
         </div>
 
-        <div class="hero-cta">
-            <a href="#postsGrid" class="btn btn-primary"><i class="fas fa-compass"></i> Explore Stories</a>
-            <?php if ($isLoggedIn): ?>
-                <a href="add-post.php" class="btn btn-secondary"><i class="fas fa-pen-to-square"></i> Write a Story</a>
-            <?php else: ?>
-                <a href="login.php" class="btn btn-secondary"><i class="fas fa-right-to-bracket"></i> Login</a>
-            <?php endif; ?>
-        </div>
-
-        <div class="hero-pills" aria-label="Hero highlights">
-            <span class="hero-pill"><i class="fas fa-book-open"></i> <?php echo compactCount($totalStories); ?> Stories</span>
-            <span class="hero-pill"><i class="fas fa-compass"></i> <?php echo number_format($destinations); ?> Destinations</span>
-            <span class="hero-pill"><i class="fas fa-users"></i> <?php echo number_format($communities); ?> Communities</span>
+        <div class="hero-spotlight" aria-hidden="true">
+            <div class="spotlight-card spotlight-card-primary">
+                <span class="spotlight-label">Trending now</span>
+                <strong>Slow travel diaries</strong>
+                <p>Photo-first stories, local food trails, and sunrise journals with real texture.</p>
+            </div>
+            <div class="spotlight-card spotlight-card-secondary">
+                <span class="spotlight-label">Community pulse</span>
+                <strong><?php echo compactCount($onlineUsers); ?> explorers online</strong>
+                <p>Fresh drops, saves, and comments are landing across the map right now.</p>
+            </div>
         </div>
     </section>
 
     <section class="stats-section fade-in">
-        <div class="stats-grid">
-            <div class="stat-item">
-                <span class="stat-number" id="onlineUsers" data-target="<?php echo (int) $onlineUsers; ?>"><?php echo number_format($onlineUsers); ?></span>
-                <span class="stat-label">Online Users <span class="live-indicator"></span></span>
+        <div class="stats-shell">
+            <div class="section-copy section-copy-centered">
+                <span class="section-kicker">Live Snapshot</span>
+                <h2>Fresh movement across the map</h2>
+                <p class="section-subtitle">A quick pulse check on what the community is publishing, saving, and reading right now.</p>
             </div>
-            <div class="stat-item">
-                <span class="stat-number" id="totalPosts" data-target="<?php echo (int) $totalStories; ?>"><?php echo number_format($totalStories); ?></span>
-                <span class="stat-label">Total Stories</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-number" id="destinations" data-target="<?php echo (int) $destinations; ?>"><?php echo number_format($destinations); ?></span>
-                <span class="stat-label">Destinations</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-number" id="communities" data-target="<?php echo (int) $communities; ?>"><?php echo number_format($communities); ?></span>
-                <span class="stat-label">Communities</span>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number" id="onlineUsers" data-target="<?php echo (int) $onlineUsers; ?>"><?php echo number_format($onlineUsers); ?></span>
+                    <span class="stat-label">Online Users <span class="live-indicator"></span></span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="totalPosts" data-target="<?php echo (int) $totalStories; ?>"><?php echo number_format($totalStories); ?></span>
+                    <span class="stat-label">Total Stories</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="destinations" data-target="<?php echo (int) $destinations; ?>"><?php echo number_format($destinations); ?></span>
+                    <span class="stat-label">Destinations</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="communities" data-target="<?php echo (int) $communities; ?>"><?php echo number_format($communities); ?></span>
+                    <span class="stat-label">Communities</span>
+                </div>
             </div>
         </div>
     </section>
@@ -168,8 +212,9 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
     <section class="activity-section fade-in">
         <div class="activity-header">
             <div class="activity-heading">
+                <span class="section-kicker">Community Radar</span>
                 <h2><i class="fas fa-location-dot"></i> Recent Activity</h2>
-                <p>See what travelers around the world are up to right now</p>
+                <p>Fresh saves, likes, follows, and comments from travelers who are active right now.</p>
             </div>
             <div class="activity-toolbar">
                 <span class="activity-live"><span class="live-dot"></span> Live updates</span>
@@ -184,7 +229,11 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 
     <div class="container fade-in">
         <div class="section-header stories-header">
-            <h2 class="stories-title"><i class="fas fa-bolt"></i> Latest Stories</h2>
+            <div class="section-copy">
+                <span class="section-kicker">Editor's Feed</span>
+                <h2 class="stories-title"><i class="fas fa-bolt"></i> Latest Stories</h2>
+                <p class="section-subtitle">New photo journals, honest write-ups, and destinations worth bookmarking.</p>
+            </div>
             <?php if ($isLoggedIn): ?>
                 <a href="add-post.php" class="btn btn-primary stories-cta">
                     <i class="fas fa-plus"></i> Share Your Story
@@ -218,17 +267,23 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 
         <div class="grid" id="postsGrid">
             <?php if (empty($posts)): ?>
-                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
-                    <h3 style="color: var(--text-muted); margin-bottom: 20px;">No stories yet!</h3>
-                    <p style="color: var(--text-muted); margin-bottom: 30px;">Be the first to share your travel adventure</p>
+                <div class="empty-state">
+                    <span class="section-kicker">Quiet for now</span>
+                    <h3>No stories yet</h3>
+                    <p>Be the first one to drop a travel memory worth reading.</p>
                     <?php if ($isLoggedIn): ?>
-                        <a href="add-post.php" style="background: var(--primary); color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 600;">
+                        <a href="add-post.php" class="btn btn-primary empty-state-cta">
                             Start Writing
                         </a>
                     <?php endif; ?>
                 </div>
             <?php else: ?>
                 <?php foreach ($posts as $post): ?>
+                    <?php
+                    $storyType = !empty($post['image']) ? 'Photo Story' : 'Travel Note';
+                    $storyDate = formatStoryDate($post['created_at'] ?? '');
+                    $readTime = estimateReadTime($post['description'] ?? '');
+                    ?>
                     <div class="card" id="post-<?php echo $post['id']; ?>" data-post-id="<?php echo $post['id']; ?>" data-title="<?php echo htmlspecialchars($post['title']); ?>" data-description="<?php echo htmlspecialchars($post['description']); ?>" data-author="<?php echo htmlspecialchars($post['author_name']); ?>" data-has-image="<?php echo !empty($post['image']) ? '1' : '0'; ?>">
                         <div class="card-img">
                             <?php if (!empty($post['image'])): ?>
@@ -236,15 +291,22 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
                             <?php else: ?>
                                 <img src="https://via.placeholder.com/350x260?text=Travel+Story" alt="placeholder">
                             <?php endif; ?>
+                            <div class="card-overlay-meta">
+                                <span class="story-badge"><?php echo $storyType; ?></span>
+                                <span class="story-meta-chip"><i class="far fa-clock"></i><?php echo $readTime; ?> min read</span>
+                            </div>
                         </div>
                         <div class="card-body">
+                            <div class="story-topline">
+                                <span class="story-chip"><i class="far fa-calendar"></i><?php echo $storyDate; ?></span>
+                            </div>
                             <h3>
                                 <a href="post.php?slug=<?php echo htmlspecialchars($post['slug']); ?>" class="card-title-link">
                                     <?php echo htmlspecialchars(substr($post['title'], 0, 50)); ?>
                                 </a>
                             </h3>
-                            <p><?php echo htmlspecialchars(substr($post['description'], 0, 100)); ?>...</p>
-                            <p class="author">By <a href="profile.php?user_id=<?php echo $post['user_id']; ?>"><?php echo htmlspecialchars($post['author_name']); ?></a></p>
+                            <p class="story-excerpt"><?php echo htmlspecialchars(substr($post['description'], 0, 100)); ?>...</p>
+                            <p class="author"><i class="far fa-user"></i> By <a href="profile.php?user_id=<?php echo $post['user_id']; ?>"><?php echo htmlspecialchars($post['author_name']); ?></a></p>
                         </div>
                         <div class="card-footer premium-card-footer">
                             <div class="stats footer-stats">
@@ -279,37 +341,41 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
     </button>
 
     <section class="categories-section fade-in" id="categories">
-        <h2 class="section-title"><i class="fas fa-compass"></i> Popular Categories</h2>
+        <div class="section-copy section-copy-centered">
+            <span class="section-kicker">Pick A Mood</span>
+            <h2 class="section-title"><i class="fas fa-compass"></i> Popular Categories</h2>
+            <p class="section-subtitle">Jump into the vibe you want, then let the stories narrow themselves down.</p>
+        </div>
         <div class="categories-grid">
             <div class="category-card" data-query="beach island coast" data-label="Beach Destinations">
                 <div class="category-icon"><i class="fas fa-umbrella-beach"></i></div>
                 <h3>Beach Destinations</h3>
-                <p>Explore stunning coastal paradises and island retreats</p>
+                <p>Salt air, golden hour swims, and coastlines worth missing flights for.</p>
             </div>
             <div class="category-card" data-query="mountain trek alpine" data-label="Mountain Adventures">
                 <div class="category-icon"><i class="fas fa-mountain"></i></div>
                 <h3>Mountain Adventures</h3>
-                <p>Conquer peaks and discover alpine landscapes</p>
+                <p>Ridges, cabin mornings, and trails that reset your head.</p>
             </div>
             <div class="category-card" data-query="city urban skyline" data-label="City Exploration">
                 <div class="category-icon"><i class="fas fa-city"></i></div>
                 <h3>City Exploration</h3>
-                <p>Navigate vibrant urban centers and cultural hubs</p>
+                <p>Street food, skylines, hidden bars, and neighborhoods with character.</p>
             </div>
             <div class="category-card" data-query="jungle forest wildlife" data-label="Jungle Trails">
                 <div class="category-icon"><i class="fas fa-tree"></i></div>
                 <h3>Jungle Trails</h3>
-                <p>Venture into lush rainforests and wildlife sanctuaries</p>
+                <p>Dense greens, wild soundscapes, and off-grid adrenaline.</p>
             </div>
             <div class="category-card" data-query="history heritage ancient" data-label="Historical Sites">
                 <div class="category-icon"><i class="fas fa-landmark"></i></div>
                 <h3>Historical Sites</h3>
-                <p>Discover ancient wonders and cultural heritage</p>
+                <p>Places with texture, memory, and stories older than maps.</p>
             </div>
             <div class="category-card" data-query="food culture cuisine" data-label="Food and Culture">
                 <div class="category-icon"><i class="fas fa-utensils"></i></div>
                 <h3>Food & Culture</h3>
-                <p>Taste local cuisines and immerse in traditions</p>
+                <p>Local plates, late-night markets, and culture you can taste.</p>
             </div>
         </div>
     </section>
@@ -320,7 +386,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
                 <a href="index.php" class="footer-logo">
                     <i class="fas fa-globe"></i> <span>Travel</span>Blog
                 </a>
-                <p class="footer-text">Your gateway to discovering extraordinary destinations and sharing unforgettable travel experiences with a global community of adventurers.</p>
+                <p class="footer-text">A sharper home for destination stories, photo journals, and the kind of travel memories worth keeping alive.</p>
                 <div class="social-icons">
                     <a href="https://facebook.com" class="social-btn" title="Facebook" target="_blank" rel="noopener noreferrer">
                         <i class="fab fa-facebook-f"></i>
@@ -357,7 +423,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 
             <div class="footer-col">
                 <h4>Newsletter</h4>
-                <p class="footer-text">One curated travel story every week. No spam.</p>
+                <p class="footer-text">One sharp travel drop every week. Pure inspiration, zero spam.</p>
                 <form class="footer-form" id="newsletterForm" novalidate>
                     <input type="email" id="newsletterEmail" name="newsletter_email" placeholder="you@example.com" aria-label="Email address" autocomplete="email" required>
                     <button class="btn btn-primary" type="submit">Subscribe</button>
@@ -368,7 +434,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
         <div class="footer-bottom">
             <div class="footer-bottom-inner">
                 <span>&copy; <?php echo date('Y'); ?> TravelBlog</span>
-                <span>Built for explorers.</span>
+                <span>Built for explorers with taste.</span>
             </div>
         </div>
     </footer>

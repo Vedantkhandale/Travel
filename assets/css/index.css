@@ -4243,6 +4243,7 @@ gap: 5px !important;
     background: var(--nav-bg) !important;
     color: var(--text-main) !important;
     border-bottom-color: var(--border) !important;
+    height: 30px !important;
 }
 
 .navbar.scrolled {
