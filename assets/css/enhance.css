@@ -3769,3 +3769,166 @@ body.index-page .live-indicator {
         flex-wrap: wrap;
     }
 }
+
+/* Final responsive nav and spacing polish */
+body.index-page.menu-open {
+    overflow: hidden;
+}
+
+body.index-page .navbar {
+    z-index: 1205 !important;
+}
+
+body.index-page .nav-scrim {
+    background: rgba(15, 23, 42, 0.48) !important;
+    backdrop-filter: blur(10px);
+    z-index: 1190 !important;
+}
+
+body.index-page.dark .nav-scrim {
+    background: rgba(2, 6, 23, 0.62) !important;
+}
+
+@media (max-width: 992px) {
+    body.index-page {
+        overflow-x: hidden;
+    }
+
+    body.index-page .navbar {
+        width: calc(100% - 20px) !important;
+        margin-top: 12px !important;
+        padding: 12px 14px 12px 16px !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: center !important;
+        gap: 10px !important;
+        border-radius: 26px !important;
+    }
+
+    body.index-page .logo {
+        min-width: 0;
+        font-size: 1.16rem !important;
+    }
+
+    body.index-page .theme-btn,
+    body.index-page .menu-toggle {
+        margin: 0 !important;
+        justify-self: end;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    body.index-page .nav-links {
+        position: fixed !important;
+        top: 84px !important;
+        right: 10px !important;
+        left: auto !important;
+        bottom: auto !important;
+        width: min(320px, calc(100vw - 20px)) !important;
+        max-height: calc(100vh - 104px);
+        padding: 16px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+        border-radius: 28px !important;
+        border: 1px solid rgba(129, 140, 248, 0.16) !important;
+        background: rgba(255, 255, 255, 0.9) !important;
+        box-shadow: 0 28px 56px rgba(15, 23, 42, 0.2) !important;
+        backdrop-filter: blur(22px);
+        overflow-y: auto;
+        transform: translate3d(calc(100% + 24px), 0, 0) !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        transition: transform 0.3s ease, opacity 0.25s ease, visibility 0.25s ease !important;
+        z-index: 1200 !important;
+    }
+
+    body.index-page.dark .nav-links {
+        background: rgba(8, 15, 24, 0.94) !important;
+        border-color: rgba(129, 140, 248, 0.18) !important;
+        box-shadow: 0 30px 64px rgba(2, 6, 23, 0.45) !important;
+    }
+
+    body.index-page .nav-links.active {
+        top: 84px !important;
+        right: 10px !important;
+        left: auto !important;
+        transform: translate3d(0, 0, 0) !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+
+    body.index-page .nav-links a {
+        width: 100%;
+        min-height: 48px !important;
+        justify-content: flex-start !important;
+        padding: 0 16px !important;
+        border-radius: 18px !important;
+    }
+
+    body.index-page .nav-links .nav-highlight,
+    body.index-page .nav-links .nav-signup {
+        justify-content: center !important;
+    }
+
+    body.index-page .hero {
+        min-height: auto !important;
+        padding-top: 148px !important;
+    }
+
+    body.index-page .hero-shell,
+    body.index-page .stories-container,
+    body.index-page .stats-shell {
+        width: min(100%, 720px) !important;
+    }
+
+    body.index-page .stories-toolbar {
+        gap: 14px !important;
+    }
+}
+
+@media (max-width: 680px) {
+    body.index-page .navbar {
+        width: calc(100% - 16px) !important;
+        padding: 11px 12px 11px 14px !important;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        border-radius: 22px !important;
+    }
+
+    body.index-page .logo {
+        font-size: 1.04rem !important;
+        gap: 8px !important;
+    }
+
+    body.index-page .theme-btn,
+    body.index-page .menu-toggle {
+        width: 42px !important;
+        height: 42px !important;
+    }
+
+    body.index-page .nav-links,
+    body.index-page .nav-links.active {
+        top: 78px !important;
+        right: 8px !important;
+        width: calc(100vw - 16px) !important;
+        border-radius: 24px !important;
+    }
+
+    body.index-page .hero {
+        padding-top: 132px !important;
+    }
+
+    body.index-page .stories-container,
+    body.index-page .stats-shell {
+        width: 100% !important;
+    }
+
+    body.index-page .stories-toolbar,
+    body.index-page .stories-controls {
+        width: 100%;
+    }
+}

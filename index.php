@@ -54,6 +54,7 @@ if ($communities > 0) {
 // Check if user is logged in
 $isLoggedIn = isset($_SESSION['user_id']);
 $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
+$preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 'light' : 'dark';
 ?>
 
 <!DOCTYPE html>
@@ -70,13 +71,13 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <link rel="stylesheet" href="assets/css/index.css?v=3">
-    <link rel="stylesheet" href="assets/css/enhance.css?v=36">
+    <link rel="stylesheet" href="assets/css/enhance.css?v=37">
    
 
    
 </head>
 
-<body class="index-page">
+<body class="index-page<?php echo $preferredTheme === 'dark' ? ' dark' : ''; ?>">
 
     <nav class="navbar" id="mainNav">
         <a href="index.php" class="logo">
@@ -103,7 +104,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
         </div>
 
         <button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle theme" onclick="toggleTheme()">
-            <i class="fas fa-moon"></i>
+            <i class="fas <?php echo $preferredTheme === 'dark' ? 'fa-sun' : 'fa-moon'; ?>"></i>
         </button>
 
         <button class="menu-toggle" id="mobile-menu" type="button" aria-label="Open menu" aria-controls="navLinks" aria-expanded="false">
@@ -340,6 +341,6 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="assets/js/index.fast.js?v=1"></script>
+    <script src="assets/js/index.fast.js?v=2"></script>
 </body>
 </html>

@@ -213,6 +213,49 @@ $profileTagline = $isOwner
             background: rgba(15, 118, 110, 0.12);
         }
 
+        .menu-toggle {
+            display: none;
+            width: 42px;
+            height: 42px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .menu-toggle:hover {
+            transform: translateY(-1px);
+            background: rgba(15, 118, 110, 0.12);
+        }
+
+        .menu-toggle i {
+            pointer-events: none;
+        }
+
+        .profile-nav-scrim {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.54);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            z-index: 18;
+        }
+
+        .profile-nav-scrim.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        body.profile-page.menu-open {
+            overflow: hidden;
+        }
+
         .profile-hero {
             position: relative;
             width: min(1240px, calc(100% - 24px));
@@ -797,17 +840,119 @@ $profileTagline = $isOwner
         .card-visual::after {
             background: linear-gradient(180deg, transparent 40%, rgba(15, 23, 42, 0.54) 100%);
         }
+
+        /* Final responsive nav polish */
+        @media (max-width: 992px) {
+            .profile-page {
+                overflow-x: hidden;
+            }
+
+            .navbar {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: center;
+                gap: 10px;
+                padding: 12px 14px 12px 16px;
+                border-radius: 26px;
+                z-index: 24;
+            }
+
+            .menu-toggle {
+                display: inline-flex;
+                justify-self: end;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 84px;
+                right: 10px;
+                left: auto;
+                width: min(320px, calc(100vw - 20px));
+                max-height: calc(100vh - 104px);
+                padding: 16px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+                border-radius: 26px;
+                border: 1px solid rgba(129, 140, 248, 0.16);
+                background: rgba(12, 20, 34, 0.92);
+                box-shadow: 0 28px 60px rgba(2, 6, 23, 0.36);
+                backdrop-filter: blur(22px);
+                overflow-y: auto;
+                transform: translate3d(calc(100% + 24px), 0, 0);
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                transition: transform 0.3s ease, opacity 0.25s ease, visibility 0.25s ease;
+                z-index: 25;
+            }
+
+            [data-theme="light"] .nav-links {
+                background: rgba(255, 255, 255, 0.92);
+                border-color: rgba(99, 102, 241, 0.14);
+                box-shadow: 0 24px 54px rgba(15, 23, 42, 0.14);
+            }
+
+            .nav-links.active {
+                transform: translate3d(0, 0, 0);
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+            }
+
+            .nav-links a,
+            .theme-switch-nav {
+                width: 100%;
+                min-height: 48px;
+                justify-content: flex-start;
+                border-radius: 18px;
+            }
+
+            .nav-links .nav-cta,
+            .theme-switch-nav {
+                justify-content: center;
+            }
+
+            .profile-hero {
+                padding-top: 116px;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .navbar {
+                width: calc(100% - 16px);
+                padding: 11px 12px 11px 14px;
+                border-radius: 22px;
+            }
+
+            .menu-toggle {
+                width: 40px;
+                height: 40px;
+            }
+
+            .nav-links,
+            .nav-links.active {
+                top: 78px;
+                right: 8px;
+                width: calc(100vw - 16px);
+                border-radius: 22px;
+            }
+
+            .profile-hero {
+                padding-top: 104px;
+            }
+        }
     </style>
 </head>
 
 <body class="profile-page" data-theme="<?php echo $preferredTheme; ?>">
 
-    <nav class="navbar">
+    <nav class="navbar" id="profileNav">
         <a href="index.php" class="logo">
             <i class="fas fa-globe"></i>
             <span>Travel</span>Blog
         </a>
-        <div class="nav-links">
+        <div class="nav-links" id="profileNavLinks">
             <a href="index.php">Home</a>
             <?php if ($isOwner): ?>
                 <a href="edit-profile.php">Edit Profile</a>
@@ -820,6 +965,9 @@ $profileTagline = $isOwner
                 <i class="fas fa-moon" id="theme-icon"></i>
             </button>
         </div>
+        <button class="menu-toggle" id="profileMenuToggle" type="button" aria-label="Open menu" aria-controls="profileNavLinks" aria-expanded="false">
+            <i class="fas fa-bars"></i>
+        </button>
     </nav>
 
     <header class="profile-hero">
@@ -930,8 +1078,66 @@ $profileTagline = $isOwner
             syncThemeIcon();
         }
 
+        function setupMobileMenu() {
+            const nav = document.getElementById('profileNav');
+            const navLinks = document.getElementById('profileNavLinks');
+            const menuToggle = document.getElementById('profileMenuToggle');
+            if (!nav || !navLinks || !menuToggle) return;
+
+            let scrim = document.querySelector('.profile-nav-scrim');
+            if (!scrim) {
+                scrim = document.createElement('div');
+                scrim.className = 'profile-nav-scrim';
+                document.body.appendChild(scrim);
+            }
+
+            const icon = menuToggle.querySelector('i');
+
+            const setMenuState = (isOpen) => {
+                navLinks.classList.toggle('active', isOpen);
+                scrim.classList.toggle('visible', isOpen);
+                document.body.classList.toggle('menu-open', isOpen);
+                menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                menuToggle.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+
+                if (icon) {
+                    icon.classList.toggle('fa-bars', !isOpen);
+                    icon.classList.toggle('fa-times', isOpen);
+                }
+            };
+
+            const closeMenu = () => setMenuState(false);
+
+            menuToggle.addEventListener('click', () => {
+                setMenuState(!navLinks.classList.contains('active'));
+            });
+
+            scrim.addEventListener('click', closeMenu);
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeMenu();
+                }
+            });
+
+            navLinks.querySelectorAll('a, button').forEach((item) => {
+                item.addEventListener('click', () => {
+                    if (window.innerWidth <= 992) {
+                        closeMenu();
+                    }
+                });
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 992) {
+                    closeMenu();
+                }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             applySavedTheme();
+            setupMobileMenu();
         });
     </script>
 </body>

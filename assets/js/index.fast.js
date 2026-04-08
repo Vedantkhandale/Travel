@@ -37,12 +37,12 @@ function updateThemeButton() {
 
 function applyStoredTheme() {
     const cookieTheme = getCookieValue('theme');
-    const storedTheme = cookieTheme || localStorage.getItem('theme') || '';
+    const storedTheme = cookieTheme || localStorage.getItem('theme') || 'dark';
 
-    if (storedTheme === 'dark') {
-        document.body.classList.add('dark');
-    } else if (storedTheme === 'light') {
+    if (storedTheme === 'light') {
         document.body.classList.remove('dark');
+    } else {
+        document.body.classList.add('dark');
     }
 
     updateThemeButton();
@@ -163,26 +163,25 @@ function setupNavbarAndMenu() {
 
     const icon = menuToggle.querySelector('i');
 
-    const closeMenu = () => {
-        navLinks.classList.remove('active');
-        scrim.classList.remove('visible');
-        menuToggle.setAttribute('aria-expanded', 'false');
-        menuToggle.setAttribute('aria-label', 'Open menu');
+    const setMenuState = (isOpen) => {
+        navLinks.classList.toggle('active', isOpen);
+        scrim.classList.toggle('visible', isOpen);
+        document.body.classList.toggle('menu-open', isOpen);
+        menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        menuToggle.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+
         if (icon) {
-            icon.classList.add('fa-bars');
-            icon.classList.remove('fa-times');
+            icon.classList.toggle('fa-bars', !isOpen);
+            icon.classList.toggle('fa-times', isOpen);
         }
     };
 
+    const closeMenu = () => {
+        setMenuState(false);
+    };
+
     const openMenu = () => {
-        navLinks.classList.add('active');
-        scrim.classList.add('visible');
-        menuToggle.setAttribute('aria-expanded', 'true');
-        menuToggle.setAttribute('aria-label', 'Close menu');
-        if (icon) {
-            icon.classList.remove('fa-bars');
-            icon.classList.add('fa-times');
-        }
+        setMenuState(true);
     };
 
     const syncScrolledState = () => {
