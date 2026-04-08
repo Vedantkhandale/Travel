@@ -1,4 +1,4 @@
-// TravelBlog - Shared scripts for index/profile pages
+﻿// TravelBlog - Shared scripts for index/profile pages
 
 const SAVED_POSTS_KEY = 'travelBlogSavedPosts';
 const explorerState = {
@@ -293,6 +293,125 @@ function setupExplorerControls() {
     }
 }
 
+function setupCategoryCards() {
+    const cards = Array.from(document.querySelectorAll('.category-card[data-query]'));
+    if (cards.length === 0) return;
+
+    const searchInput = document.getElementById('searchInput');
+
+    const applyCategory = (card) => {
+        const query = (card.getAttribute('data-query') || '').trim();
+        const label = (card.getAttribute('data-label') || 'selected').trim();
+        if (!query) return;
+
+        cards.forEach((item) => item.classList.remove('active'));
+        card.classList.add('active');
+
+        if (searchInput) {
+            searchInput.value = query;
+        }
+
+        filterCards(query);
+        toastNotification('Filtered: ' + label);
+
+        const target = document.getElementById('postsGrid');
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
+    cards.forEach((card) => {
+        if (card.dataset.categoryBound === '1') return;
+        card.dataset.categoryBound = '1';
+
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        if (!card.hasAttribute('aria-label')) {
+            const label = (card.getAttribute('data-label') || 'category').trim();
+            card.setAttribute('aria-label', 'Filter by ' + label);
+        }
+
+        card.addEventListener('click', () => {
+            applyCategory(card);
+        });
+
+        card.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            applyCategory(card);
+        });
+    });
+}
+
+function setupFooterLinks() {
+    const footer = document.querySelector('.main-footer');
+    if (!footer) return;
+
+    footer.querySelectorAll('a[href^="#"]').forEach((link) => {
+        if (link.dataset.bound === '1') return;
+        link.dataset.bound = '1';
+
+        link.addEventListener('click', (event) => {
+            const targetSelector = link.getAttribute('href') || '';
+            if (!targetSelector || targetSelector === '#') return;
+
+            const target = document.querySelector(targetSelector);
+            if (!target) return;
+
+            event.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+}
+
+function setupNewsletterForm() {
+    const form = document.getElementById('newsletterForm');
+    const input = document.getElementById('newsletterEmail');
+    if (!form || !input || form.dataset.bound === '1') return;
+    form.dataset.bound = '1';
+
+    const storageKey = 'travelBlogNewsletterSubscribers';
+
+    const setInvalidState = (invalid) => {
+        input.classList.toggle('is-invalid', invalid);
+        input.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+    };
+
+    input.addEventListener('input', () => setInvalidState(false));
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const email = (input.value || '').trim().toLowerCase();
+        const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+
+        if (!emailValid) {
+            setInvalidState(true);
+            input.focus();
+            toastNotification('Please enter a valid email');
+            return;
+        }
+
+        setInvalidState(false);
+
+        let list = [];
+        try {
+            const parsed = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            if (Array.isArray(parsed)) list = parsed;
+        } catch (_) {
+            list = [];
+        }
+
+        if (!list.includes(email)) {
+            list.push(email);
+        }
+
+        localStorage.setItem(storageKey, JSON.stringify(list.slice(-200)));
+        input.value = '';
+        toastNotification('Subscribed successfully');
+    });
+}
+
 function setupBackToTop() {
     const backToTop = document.getElementById('backToTop');
     if (!backToTop) return;
@@ -334,72 +453,105 @@ function updateStats() {
 
     if (!onlineUsers || !totalPosts || !destinations || !communities) return;
 
-    let currentOnline = parseInt((onlineUsers.textContent || '0').replace(',', ''), 10);
-    let currentPosts = parseInt((totalPosts.textContent || '0').replace(',', ''), 10);
-    let currentDest = parseInt(destinations.textContent || '0', 10);
-    let currentComm = parseInt(communities.textContent || '0', 10);
+    const readTarget = (element) => {
+        const target = parseInt(element.getAttribute('data-target') || '', 10);
+        if (!Number.isNaN(target)) return target;
+        const fallback = parseInt((element.textContent || '0').replace(',', ''), 10);
+        return Number.isNaN(fallback) ? 0 : fallback;
+    };
 
-    if ([currentOnline, currentPosts, currentDest, currentComm].some(Number.isNaN)) return;
+    const targetPosts = readTarget(totalPosts);
+    const targetDestinations = readTarget(destinations);
+    const targetCommunities = readTarget(communities);
+    const targetOnline = readTarget(onlineUsers);
 
-    currentOnline += Math.floor(Math.random() * 11) - 5;
-    currentPosts += Math.floor(Math.random() * 3) - 1;
-    currentDest += Math.floor(Math.random() * 3) - 1;
-    currentComm += Math.floor(Math.random() * 5) - 2;
+    animateNumber(totalPosts, targetPosts);
+    animateNumber(destinations, targetDestinations);
+    animateNumber(communities, targetCommunities);
 
-    currentOnline = Math.max(200, Math.min(300, currentOnline));
-    currentPosts = Math.max(1200, Math.min(1300, currentPosts));
-    currentDest = Math.max(80, Math.min(100, currentDest));
-    currentComm = Math.max(140, Math.min(170, currentComm));
+    if (targetOnline <= 0) return;
 
-    animateNumber(onlineUsers, currentOnline);
-    animateNumber(totalPosts, currentPosts);
-    animateNumber(destinations, currentDest);
-    animateNumber(communities, currentComm);
+    const variance = Math.max(2, Math.round(targetOnline * 0.1));
+    const currentOnline = parseInt((onlineUsers.textContent || '0').replace(',', ''), 10);
+    const baseOnline = Number.isNaN(currentOnline) ? targetOnline : currentOnline;
+    let liveOnline = baseOnline + Math.floor(Math.random() * 5) - 2;
+
+    const minOnline = Math.max(1, targetOnline - variance);
+    const maxOnline = targetOnline + variance;
+    liveOnline = Math.max(minOnline, Math.min(maxOnline, liveOnline));
+    animateNumber(onlineUsers, liveOnline);
 }
 
 function setupNotifications() {
     const container = document.getElementById('notificationContainer');
-    if (!container) return;
+    if (!container || container.dataset.bound === '1') return;
+    container.dataset.bound = '1';
 
     const notifications = [
-        { user: 'Sarah', action: 'shared a new adventure in Bali', time: '2 min ago' },
-        { user: 'Mike', action: 'liked your Tokyo story', time: '5 min ago' },
-        { user: 'Emma', action: 'commented on your Paris post', time: '8 min ago' },
-        { user: 'Alex', action: 'started following you', time: '12 min ago' },
-        { user: 'Lisa', action: 'shared your Iceland guide', time: '15 min ago' }
+        { user: 'Sarah', type: 'follow', action: 'started following your profile' },
+        { user: 'Mike', type: 'like', action: 'liked your Tokyo story' },
+        { user: 'Emma', type: 'comment', action: 'commented on your Paris post' },
+        { user: 'Alex', type: 'save', action: 'saved your mountain guide' },
+        { user: 'Lisa', type: 'share', action: 'shared your Bali itinerary' },
+        { user: 'Rahul', type: 'follow', action: 'followed your updates' },
+        { user: 'Nina', type: 'like', action: 'liked your sunset photos' }
     ];
+
+    const typeMeta = {
+        follow: { label: 'Follow', icon: 'fa-user-plus' },
+        like: { label: 'Like', icon: 'fa-heart' },
+        comment: { label: 'Comment', icon: 'fa-comment-dots' },
+        save: { label: 'Save', icon: 'fa-bookmark' },
+        share: { label: 'Share', icon: 'fa-paper-plane' }
+    };
+
+    const getRandomTime = () => {
+        const minutes = Math.floor(Math.random() * 14) + 1;
+        return minutes + (minutes === 1 ? ' min ago' : ' mins ago');
+    };
 
     function showRandomNotification() {
         const randomNotif = notifications[Math.floor(Math.random() * notifications.length)];
+        const meta = typeMeta[randomNotif.type] || typeMeta.like;
+
+        if (container.children.length >= 3) {
+            const first = container.firstElementChild;
+            if (first) first.remove();
+        }
 
         const notification = document.createElement('div');
-        notification.className = 'notification';
+        notification.className = 'notification notification-' + randomNotif.type;
         notification.innerHTML = `
             <div class="notification-header">
                 <div class="notification-avatar">${randomNotif.user.charAt(0)}</div>
-                <strong>${randomNotif.user}</strong>
+                <strong class="notification-user">${randomNotif.user}</strong>
+                <span class="notification-badge"><i class="fas ${meta.icon}"></i>${meta.label}</span>
             </div>
             <div class="notification-content">${randomNotif.action}</div>
-            <div class="notification-time">${randomNotif.time}</div>
+            <div class="notification-time">${getRandomTime()}</div>
         `;
 
         container.appendChild(notification);
-        setTimeout(() => notification.classList.add('show'), 60);
+        requestAnimationFrame(() => notification.classList.add('show'));
+
         setTimeout(() => {
             notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-        }, 4500);
+            setTimeout(() => notification.remove(), 260);
+        }, 5200);
     }
 
     function scheduleNotification() {
-        const delay = Math.random() * 45000 + 45000;
+        const delay = Math.random() * 16000 + 16000;
         setTimeout(() => {
-            showRandomNotification();
+            if (document.visibilityState === 'visible') {
+                showRandomNotification();
+            }
             scheduleNotification();
         }, delay);
     }
 
-    setTimeout(scheduleNotification, 9000);
+    setTimeout(() => showRandomNotification(), 1400);
+    setTimeout(scheduleNotification, 2600);
 }
 
 function hydrateSavedCardStats() {
@@ -503,24 +655,8 @@ function setupCardHoverEnhancements() {
     const cards = document.querySelectorAll('#postsGrid .card');
 
     cards.forEach((card) => {
-        if (card.dataset.hoverEnhanceBound !== '1') {
-            card.dataset.hoverEnhanceBound = '1';
-
-            card.addEventListener('mousemove', (event) => {
-                const rect = card.getBoundingClientRect();
-                if (!rect.width || !rect.height) return;
-
-                const x = ((event.clientX - rect.left) / rect.width) * 100;
-                const y = ((event.clientY - rect.top) / rect.height) * 100;
-                card.style.setProperty('--pointer-x', x.toFixed(1) + '%');
-                card.style.setProperty('--pointer-y', y.toFixed(1) + '%');
-            });
-
-            card.addEventListener('mouseleave', () => {
-                card.style.removeProperty('--pointer-x');
-                card.style.removeProperty('--pointer-y');
-            });
-        }
+        if (card.dataset.hoverEnhanceBound === '1') return;
+        card.dataset.hoverEnhanceBound = '1';
 
         const imageWrap = card.querySelector('.card-img');
         if (!imageWrap || imageWrap.dataset.quickLikeBound === '1') return;
@@ -538,45 +674,136 @@ function setupCardHoverEnhancements() {
     });
 }
 
-function populateActivityFeed() {
+function formatActivityTime(minutes) {
+    const value = Math.max(0, parseInt(minutes, 10) || 0);
+    if (value === 0) return 'just now';
+    if (value < 60) return value + (value === 1 ? ' min ago' : ' mins ago');
+
+    const hours = Math.floor(value / 60);
+    if (hours < 24) return hours + (hours === 1 ? ' hr ago' : ' hrs ago');
+
+    const days = Math.floor(hours / 24);
+    return days + (days === 1 ? ' day ago' : ' days ago');
+}
+
+function buildActivityData() {
+    const cards = Array.from(document.querySelectorAll('#postsGrid .card'));
+    const actionPool = [
+        { text: 'shared a new route guide', icon: 'fa-map-location-dot' },
+        { text: 'posted a photo highlight', icon: 'fa-camera-retro' },
+        { text: 'updated a travel checklist', icon: 'fa-list-check' },
+        { text: 'recommended a local spot', icon: 'fa-star' },
+        { text: 'saved a weekend plan', icon: 'fa-bookmark' },
+        { text: 'started a discussion thread', icon: 'fa-comments' }
+    ];
+    const fallbackLocations = ['Bali', 'Tokyo', 'Paris', 'New York', 'Thailand', 'Santorini', 'Amsterdam', 'Manali'];
+
+    if (cards.length > 0) {
+        return cards.slice(0, 10).map((card, index) => {
+            const title = (card.getAttribute('data-title') || '').trim();
+            const author = (card.getAttribute('data-author') || 'Traveler').trim();
+            const action = actionPool[index % actionPool.length];
+            const location = fallbackLocations[index % fallbackLocations.length];
+
+            return {
+                user: author || 'Traveler',
+                action: action.text,
+                icon: action.icon,
+                title: title || 'New travel story',
+                location,
+                minutes: 2 + index * 4
+            };
+        });
+    }
+
+    return [
+        { user: 'Sarah', action: 'shared a new route guide', icon: 'fa-map-location-dot', title: 'Sunrise trail in Bali', location: 'Bali', minutes: 2 },
+        { user: 'Mike', action: 'posted a photo highlight', icon: 'fa-camera-retro', title: 'Tokyo street walk', location: 'Tokyo', minutes: 6 },
+        { user: 'Emma', action: 'recommended a local spot', icon: 'fa-star', title: 'Paris café notes', location: 'Paris', minutes: 10 },
+        { user: 'Alex', action: 'updated a travel checklist', icon: 'fa-list-check', title: 'Weekend city guide', location: 'New York', minutes: 14 },
+        { user: 'Lisa', action: 'saved a weekend plan', icon: 'fa-bookmark', title: 'Island food trail', location: 'Thailand', minutes: 18 },
+        { user: 'David', action: 'started a discussion thread', icon: 'fa-comments', title: 'Sunset viewpoint picks', location: 'Santorini', minutes: 22 }
+    ];
+}
+
+function populateActivityFeed(shouldShuffle) {
     const feed = document.getElementById('activityFeed');
     if (!feed) return;
 
-    const activities = [
-        { user: 'Sarah', action: 'shared a new adventure', location: 'Bali', time: '2 minutes ago' },
-        { user: 'Mike', action: 'discovered hidden gems in', location: 'Tokyo', time: '5 minutes ago' },
-        { user: 'Emma', action: 'posted amazing photos from', location: 'Paris', time: '8 minutes ago' },
-        { user: 'Alex', action: 'started exploring', location: 'New York', time: '12 minutes ago' },
-        { user: 'Lisa', action: 'shared food adventures in', location: 'Thailand', time: '15 minutes ago' },
-        { user: 'David', action: 'captured sunset views in', location: 'Santorini', time: '18 minutes ago' }
-    ];
+    const activities = buildActivityData();
+    const source = shouldShuffle ? [...activities].sort(() => Math.random() - 0.5) : activities;
+    const selected = source.slice(0, 6).sort((a, b) => a.minutes - b.minutes);
 
-    const selected = activities.sort(() => 0.5 - Math.random()).slice(0, 6);
     feed.innerHTML = '';
 
-    selected.forEach((activity) => {
+    selected.forEach((activity, index) => {
         const item = document.createElement('div');
         item.className = 'activity-item';
-        item.innerHTML = `
-            <div class="activity-avatar">${activity.user.charAt(0)}</div>
-            <div class="activity-content">
-                <div class="activity-text">
-                    <strong>${activity.user}</strong> ${activity.action} <strong>${activity.location}</strong>
-                </div>
-                <div class="activity-time">${activity.time}</div>
-            </div>
-        `;
+        item.style.animationDelay = String(index * 40) + 'ms';
+
+        const avatar = document.createElement('div');
+        avatar.className = 'activity-avatar';
+        avatar.textContent = (activity.user || 'T').charAt(0).toUpperCase();
+
+        const content = document.createElement('div');
+        content.className = 'activity-content';
+
+        const text = document.createElement('p');
+        text.className = 'activity-text';
+        text.innerHTML = `<strong>${activity.user}</strong> ${activity.action}`;
+
+        const title = document.createElement('p');
+        title.className = 'activity-title';
+        title.innerHTML = `<i class="fas fa-book-open"></i>${(activity.title || '').slice(0, 44)}`;
+
+        const meta = document.createElement('div');
+        meta.className = 'activity-meta';
+
+        const location = document.createElement('span');
+        location.className = 'activity-location';
+        location.innerHTML = `<i class="fas fa-location-dot"></i>${activity.location}`;
+
+        const time = document.createElement('span');
+        time.className = 'activity-time';
+        time.setAttribute('data-minutes', String(activity.minutes));
+        time.textContent = formatActivityTime(activity.minutes);
+
+        const actionIcon = document.createElement('span');
+        actionIcon.className = 'activity-action-icon';
+        actionIcon.innerHTML = `<i class="fas ${activity.icon}"></i>`;
+
+        meta.appendChild(location);
+        meta.appendChild(time);
+        content.appendChild(text);
+        content.appendChild(title);
+        content.appendChild(meta);
+        item.appendChild(avatar);
+        item.appendChild(content);
+        item.appendChild(actionIcon);
         feed.appendChild(item);
     });
 }
 
+function setupActivityRefresh() {
+    const refreshBtn = document.getElementById('refreshActivity');
+    if (!refreshBtn || refreshBtn.dataset.bound === '1') return;
+    refreshBtn.dataset.bound = '1';
+
+    refreshBtn.addEventListener('click', () => {
+        refreshBtn.classList.add('is-spinning');
+        populateActivityFeed(true);
+        toastNotification('Activity refreshed');
+        setTimeout(() => refreshBtn.classList.remove('is-spinning'), 420);
+    });
+}
+
 function updateActivityTimes() {
-    document.querySelectorAll('.activity-time').forEach((el) => {
-        const current = el.textContent || '';
-        const minutes = parseInt(current.split(' ')[0], 10);
-        if (!Number.isNaN(minutes)) {
-            el.textContent = (minutes + 1) + ' minutes ago';
-        }
+    document.querySelectorAll('.activity-time[data-minutes]').forEach((el) => {
+        let minutes = parseInt(el.getAttribute('data-minutes') || '0', 10);
+        if (Number.isNaN(minutes)) minutes = 0;
+        minutes += 1;
+        el.setAttribute('data-minutes', String(minutes));
+        el.textContent = formatActivityTime(minutes);
     });
 }
 
@@ -690,17 +917,22 @@ document.addEventListener('DOMContentLoaded', () => {
     setupNavbarAndMenu();
     setupSearch();
     setupExplorerControls();
+    setupCategoryCards();
+    setupFooterLinks();
+    setupNewsletterForm();
     setupSaveButtons();
     setupNotifications();
     setupCardButtons();
     setupCardHoverEnhancements();
     hydrateSavedCardStats();
-    populateActivityFeed();
+    populateActivityFeed(true);
+    setupActivityRefresh();
     setupBackToTop();
 
     updateStats();
     setInterval(updateStats, 30000);
     setInterval(updateActivityTimes, 60000);
+    setInterval(() => populateActivityFeed(true), 90000);
 
     setupLoadingOverlay();
     addButtonEffects();
@@ -711,3 +943,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.addEventListener('scroll', throttledScrollHandler);
 window.addEventListener('load', handleScrollAnimations);
+
