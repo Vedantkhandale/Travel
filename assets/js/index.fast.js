@@ -487,42 +487,68 @@ function setupBackToTop() {
 
 function toggleLikeButton(button) {
     const postId = button.getAttribute('data-post-id') || '';
-    const icon = button.querySelector('i');
-    const countEl = button.querySelector('.like-count');
-    if (!postId || !icon || !countEl) return;
+    if (!postId) return;
 
-    let count = parseInt(countEl.textContent || '0', 10) || 0;
-    const nextActive = !button.classList.contains('active');
-
-    button.classList.toggle('active', nextActive);
-    icon.className = nextActive ? 'fas fa-heart' : 'far fa-heart';
-    count = nextActive ? count + 1 : Math.max(0, count - 1);
-    countEl.textContent = String(count);
-
-    const stats = getLocalMap(LIKE_STATS_KEY);
-    stats[postId] = count;
-    localStorage.setItem(LIKE_STATS_KEY, JSON.stringify(stats));
-
-    toastNotification(nextActive ? 'Story liked' : 'Like removed');
+    // Send AJAX request
+    fetch('ajax/like.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'post_id=' + encodeURIComponent(postId)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const icon = button.querySelector('i');
+            const countEl = button.querySelector('.like-count');
+            if (icon && countEl) {
+                button.classList.toggle('active', data.liked);
+                icon.className = data.liked ? 'fas fa-heart' : 'far fa-heart';
+                countEl.textContent = String(data.like_count);
+            }
+            toastNotification(data.liked ? 'Story liked' : 'Like removed');
+        } else {
+            toastNotification(data.message || 'Error liking story');
+        }
+    })
+    .catch(error => {
+        console.error('Like error:', error);
+        toastNotification('Error liking story');
+    });
 }
 
 function addComment(button) {
     const postId = button.getAttribute('data-post-id') || '';
-    const countEl = button.querySelector('.comment-count');
-    if (!postId || !countEl) return;
+    if (!postId) return;
 
     const comment = window.prompt('Add a quick comment:', 'Amazing story!');
     if (!comment || !comment.trim()) return;
 
-    let count = parseInt(countEl.textContent || '0', 10) || 0;
-    count += 1;
-    countEl.textContent = String(count);
-
-    const comments = getLocalMap(COMMENT_STATS_KEY);
-    comments[postId] = count;
-    localStorage.setItem(COMMENT_STATS_KEY, JSON.stringify(comments));
-
-    toastNotification('Comment added');
+    // Send AJAX request
+    fetch('ajax/comment.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'post_id=' + encodeURIComponent(postId) + '&comment=' + encodeURIComponent(comment)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const countEl = button.querySelector('.comment-count');
+            if (countEl) {
+                countEl.textContent = String(data.comment_count);
+            }
+            toastNotification('Comment added');
+        } else {
+            toastNotification(data.message || 'Error adding comment');
+        }
+    })
+    .catch(error => {
+        console.error('Comment error:', error);
+        toastNotification('Error adding comment');
+    });
 }
 
 function setupStoryInteractions() {

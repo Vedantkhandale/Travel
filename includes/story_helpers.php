@@ -105,7 +105,9 @@ if (!function_exists('fetchHomepageStories')) {
         }
 
         $sql = "
-            SELECT posts.*, users.name AS author_name
+            SELECT posts.*, users.name AS author_name,
+                   (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) as like_count,
+                   (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) as comment_count
             FROM posts
             JOIN users ON posts.user_id = users.id
             {$whereSql}
@@ -142,9 +144,8 @@ if (!function_exists('renderHomepageStoryCard')) {
         $image = !empty($post['image'])
             ? 'uploads/' . htmlspecialchars((string) $post['image'])
             : pickFallbackStoryImage($postId);
-        $canEdit = $isLoggedIn && $currentUserId !== null && (int) $currentUserId === (int) ($post['user_id'] ?? 0);
-
-        ob_start();
+        $likeCount = (int) ($post['like_count'] ?? 0);
+        $commentCount = (int) ($post['comment_count'] ?? 0);
         ?>
         <div class="card" id="post-<?php echo $postId; ?>" data-post-id="<?php echo $postId; ?>" data-title="<?php echo htmlspecialchars((string) ($post['title'] ?? '')); ?>" data-description="<?php echo htmlspecialchars((string) ($post['description'] ?? '')); ?>" data-author="<?php echo $authorName; ?>" data-has-image="<?php echo !empty($post['image']) ? '1' : '0'; ?>">
             <div class="card-img">
@@ -170,11 +171,11 @@ if (!function_exists('renderHomepageStoryCard')) {
                 <div class="stats footer-stats">
                     <button type="button" class="stat-item like-btn" data-post-id="<?php echo $postId; ?>" aria-label="Like post">
                         <i class="far fa-heart"></i>
-                        <span class="like-count">0</span>
+                        <span class="like-count"><?php echo $likeCount; ?></span>
                     </button>
                     <button type="button" class="stat-item comment-btn" data-post-id="<?php echo $postId; ?>" aria-label="Add comment">
                         <i class="far fa-comment"></i>
-                        <span class="comment-count">0</span>
+                        <span class="comment-count"><?php echo $commentCount; ?></span>
                     </button>
                 </div>
                 <div class="card-actions footer-actions">
@@ -220,5 +221,136 @@ if (!function_exists('renderHomepageStoriesGrid')) {
         }
 
         return trim((string) ob_get_clean());
+    }
+}
+
+if (!function_exists('getPostLikeCount')) {
+    function getPostLikeCount($conn, $postId)
+    {
+        $postId = (int) $postId;
+        $sql = "SELECT COUNT(*) as count FROM likes WHERE post_id = $postId";
+        $result = mysqli_query($conn, $sql);
+        if (!$result) {
+            return 0;
+        }
+        $row = mysqli_fetch_assoc($result);
+        return (int) ($row['count'] ?? 0);
+    }
+}
+
+if (!function_exists('getPostCommentCount')) {
+    function getPostCommentCount($conn, $postId)
+    {
+        $postId = (int) $postId;
+        $sql = "SELECT COUNT(*) as count FROM comments WHERE post_id = $postId";
+        $result = mysqli_query($conn, $sql);
+        if (!$result) {
+            return 0;
+        }
+        $row = mysqli_fetch_assoc($result);
+        return (int) ($row['count'] ?? 0);
+    }
+}
+
+if (!function_exists('isPostLikedByUser')) {
+    function isPostLikedByUser($conn, $postId, $userId)
+    {
+        $postId = (int) $postId;
+        $userId = (int) $userId;
+        $sql = "SELECT id FROM likes WHERE post_id = $postId AND user_id = $userId LIMIT 1";
+        $result = mysqli_query($conn, $sql);
+        return mysqli_num_rows($result) > 0;
+    }
+}
+
+if (!function_exists('toggleLike')) {
+    function toggleLike($conn, $postId, $userId)
+    {
+        $postId = (int) $postId;
+        $userId = (int) $userId;
+        if (isPostLikedByUser($conn, $postId, $userId)) {
+            // Unlike
+            $sql = "DELETE FROM likes WHERE post_id = $postId AND user_id = $userId";
+            mysqli_query($conn, $sql);
+            return false; // not liked
+        } else {
+            // Like
+            $sql = "INSERT INTO likes (post_id, user_id) VALUES ($postId, $userId)";
+            mysqli_query($conn, $sql);
+            return true; // liked
+        }
+    }
+}
+
+if (!function_exists('getPostComments')) {
+    function getPostComments($conn, $postId, $limit = 10)
+    {
+        $postId = (int) $postId;
+        $limit = (int) $limit;
+        $sql = "
+            SELECT comments.*, users.name AS author_name, users.profile_photo
+            FROM comments
+            JOIN users ON comments.user_id = users.id
+            WHERE comments.post_id = $postId
+            ORDER BY comments.created_at DESC
+            LIMIT $limit
+        ";
+        $result = mysqli_query($conn, $sql);
+        if (!$result) {
+            return [];
+        }
+        $comments = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $comments[] = $row;
+        }
+        return $comments;
+    }
+}
+
+if (!function_exists('addComment')) {
+    function addComment($conn, $postId, $userId, $commentText)
+    {
+        $postId = (int) $postId;
+        $userId = (int) $userId;
+        $commentText = mysqli_real_escape_string($conn, trim($commentText));
+        if (empty($commentText)) {
+            return false;
+        }
+        $sql = "INSERT INTO comments (post_id, user_id, comment_text) VALUES ($postId, $userId, '$commentText')";
+        return mysqli_query($conn, $sql);
+    }
+}
+
+if (!function_exists('renderComments')) {
+    function renderComments($conn, $postId)
+    {
+        $comments = getPostComments($conn, $postId);
+        if (empty($comments)) {
+            return '<p class="no-comments">No comments yet. Be the first!</p>';
+        }
+        ob_start();
+        ?>
+        <div class="comments-list">
+            <?php foreach ($comments as $comment): ?>
+                <div class="comment-item">
+                    <div class="comment-avatar">
+                        <?php if (!empty($comment['profile_photo'])): ?>
+                            <img src="uploads/<?php echo htmlspecialchars($comment['profile_photo']); ?>" alt="<?php echo htmlspecialchars($comment['author_name']); ?>">
+                        <?php else: ?>
+                            <div class="avatar-placeholder"><?php echo substr(htmlspecialchars($comment['author_name']), 0, 1); ?></div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <span class="comment-author"><?php echo htmlspecialchars($comment['author_name']); ?></span>
+                            <span class="comment-date"><?php echo formatStoryDate($comment['created_at']); ?></span>
+                        </div>
+                        <p class="comment-text"><?php echo htmlspecialchars($comment['comment_text']); ?></p>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <?php
+        return ob_get_clean();
     }
 }
