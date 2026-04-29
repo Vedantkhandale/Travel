@@ -3,6 +3,8 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 include 'includes/db.php';
+include 'includes/story_helpers.php';
+include 'includes/layout_components.php';
 session_start();
 
 if (!isset($_GET['user_id'])) { header("Location: index.php"); exit(); }
@@ -948,28 +950,32 @@ $profileTagline = $isOwner
 
 <body class="profile-page" data-theme="<?php echo $preferredTheme; ?>">
 
-    <nav class="navbar" id="profileNav">
-        <a href="index.php" class="logo">
-            <i class="fas fa-globe"></i>
-            <span>Travel</span>Blog
-        </a>
-        <div class="nav-links" id="profileNavLinks">
-            <a href="index.php">Home</a>
-            <?php if ($isOwner): ?>
-                <a href="edit-profile.php">Edit Profile</a>
-                <a href="add-post.php" class="nav-cta">New Story</a>
-            <?php endif; ?>
-            <?php if ($isLoggedIn): ?>
-                <a href="logout.php">Logout</a>
-            <?php endif; ?>
-            <button class="theme-switch-nav" type="button" onclick="toggleTheme()" aria-label="Toggle theme">
-                <i class="fas fa-moon" id="theme-icon"></i>
-            </button>
-        </div>
-        <button class="menu-toggle" id="profileMenuToggle" type="button" aria-label="Open menu" aria-controls="profileNavLinks" aria-expanded="false">
-            <i class="fas fa-bars"></i>
-        </button>
-    </nav>
+    <?php
+    $profileLinks = [
+        ['href' => 'index.php', 'label' => 'Home', 'when' => 'all']
+    ];
+
+    if ($isOwner) {
+        $profileLinks[] = ['href' => 'edit-profile.php', 'label' => 'Edit Profile', 'when' => 'all'];
+        $profileLinks[] = ['href' => 'add-post.php', 'label' => 'New Story', 'class' => 'nav-cta', 'when' => 'all'];
+    }
+
+    if ($isLoggedIn) {
+        $profileLinks[] = ['href' => 'logout.php', 'label' => 'Logout', 'when' => 'all'];
+    } else {
+        $profileLinks[] = ['href' => 'login.php', 'label' => 'Login', 'class' => 'nav-login', 'when' => 'all'];
+    }
+
+    tbRenderHeader([
+        'is_logged_in' => false,
+        'show_welcome' => false,
+        'preferred_theme' => $preferredTheme,
+        'nav_id' => 'profileNav',
+        'links_id' => 'profileNavLinks',
+        'menu_toggle_id' => 'profileMenuToggle',
+        'links' => $profileLinks
+    ]);
+    ?>
 
     <header class="profile-hero">
         <div class="hero-mask"></div>
@@ -1028,6 +1034,11 @@ $profileTagline = $isOwner
         <?php else: ?>
         <div class="grid">
             <?php foreach ($posts as $post): ?>
+                <?php
+                $profileStoryImage = !empty($post['image'])
+                    ? 'uploads/' . htmlspecialchars((string) $post['image'])
+                    : pickFallbackStoryImage((int) ($post['id'] ?? 0));
+                ?>
                 <article class="sexy-card">
                     <?php if ($isOwner): ?>
                         <button onclick="if(confirm('Delete permanently?')) window.location.href='delete-post.php?id=<?php echo $post['id']; ?>'" class="delete-btn" type="button">
@@ -1036,7 +1047,7 @@ $profileTagline = $isOwner
                     <?php endif; ?>
 
                     <div class="card-visual">
-                        <img src="uploads/<?php echo htmlspecialchars($post['image'] ?: 'bg_1_1775321727.jpg'); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" loading="lazy" decoding="async">
+                        <img src="<?php echo $profileStoryImage; ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" loading="lazy" decoding="async">
                     </div>
                     <div class="card-info">
                         <span class="card-meta"><i class="far fa-calendar"></i><?php echo !empty($post['created_at']) ? date('M d, Y', strtotime($post['created_at'])) : 'Recent'; ?></span>
@@ -1055,9 +1066,20 @@ $profileTagline = $isOwner
         <?php endif; ?>
     </main>
 
+    <?php
+    tbRenderFooter([
+        'is_logged_in' => $isLoggedIn,
+        'user_id' => $_SESSION['user_id'] ?? 0,
+        'show_newsletter' => false,
+        'footer_class' => 'main-footer',
+        'tagline' => 'Traveler profiles, visual memories, and destination stories that stay easy to explore.',
+        'bottom_text' => 'Profile experience synced across every screen.'
+    ]);
+    ?>
+
     <script>
         function syncThemeIcon() {
-            const icon = document.getElementById('theme-icon');
+            const icon = document.querySelector('#themeBtn i');
             if (!icon) return;
 
             const isLight = document.body.getAttribute('data-theme') === 'light';

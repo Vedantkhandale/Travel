@@ -20,6 +20,51 @@ if (!function_exists('estimateReadTime')) {
     }
 }
 
+if (!function_exists('getUploadsFallbackImages')) {
+    function getUploadsFallbackImages()
+    {
+        static $cache = null;
+        if (is_array($cache)) {
+            return $cache;
+        }
+
+        $cache = [];
+        $uploadsDir = realpath(__DIR__ . '/../uploads');
+        if ($uploadsDir === false || !is_dir($uploadsDir)) {
+            return $cache;
+        }
+
+        $patterns = ['*.jpg', '*.jpeg', '*.png', '*.gif', '*.webp', '*.avif'];
+        foreach ($patterns as $pattern) {
+            foreach (glob($uploadsDir . DIRECTORY_SEPARATOR . $pattern) ?: [] as $filePath) {
+                if (!is_file($filePath)) {
+                    continue;
+                }
+
+                $cache[] = 'uploads/' . basename((string) $filePath);
+            }
+        }
+
+        $cache = array_values(array_unique($cache));
+        sort($cache, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $cache;
+    }
+}
+
+if (!function_exists('pickFallbackStoryImage')) {
+    function pickFallbackStoryImage($seed = 0)
+    {
+        $uploads = getUploadsFallbackImages();
+        if (!empty($uploads)) {
+            $index = abs((int) $seed) % count($uploads);
+            return $uploads[$index];
+        }
+
+        return 'images/air.jpg';
+    }
+}
+
 if (!function_exists('fetchHomepageStories')) {
     function fetchHomepageStories($conn, array $options = [])
     {
@@ -93,10 +138,10 @@ if (!function_exists('renderHomepageStoryCard')) {
         $authorName = htmlspecialchars((string) ($post['author_name'] ?? 'Traveler'));
         $authorUrl = 'profile.php?user_id=' . (int) ($post['user_id'] ?? 0);
         $slug = htmlspecialchars((string) ($post['slug'] ?? ''));
+        $postId = (int) ($post['id'] ?? 0);
         $image = !empty($post['image'])
             ? 'uploads/' . htmlspecialchars((string) $post['image'])
-            : 'images/air.jpg';
-        $postId = (int) ($post['id'] ?? 0);
+            : pickFallbackStoryImage($postId);
         $canEdit = $isLoggedIn && $currentUserId !== null && (int) $currentUserId === (int) ($post['user_id'] ?? 0);
 
         ob_start();

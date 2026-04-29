@@ -1,5 +1,6 @@
 <?php
 include 'includes/db.php';
+include 'includes/layout_components.php';
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
@@ -84,29 +85,21 @@ if (isset($_POST['update_profile'])) {
 </head>
 <body class="edit-profile-page">
 
-    <!-- Navbar -->
-    <nav class="navbar" id="mainNav">
-        <a href="index.php" class="logo">
-            <i class="fas fa-globe"></i><span>Travel</span>Blog
-        </a>
-        
-        <div class="nav-links" id="navLinks">
-            <a href="profile.php?user_id=<?php echo $_SESSION['user_id']; ?>" class="user-welcome">
-                <i class="fas fa-user"></i> Hi, <?php echo htmlspecialchars($_SESSION['user_name']); ?>
-            </a>
-            <a href="index.php">Home</a>
-            <a href="add-post.php">Add Post</a>
-            <a href="logout.php">Logout</a>
-        </div>
-        
-        <button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle theme" onclick="toggleTheme()">
-            <i class="fas fa-moon"></i>
-        </button>
-        
-        <button class="menu-toggle" id="mobile-menu" type="button" aria-label="Open menu" aria-controls="navLinks" aria-expanded="false">
-            <i class="fas fa-bars"></i>
-        </button>
-    </nav>
+    <?php
+    $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 'light' : 'dark';
+    tbRenderHeader([
+        'is_logged_in' => true,
+        'user_id' => $_SESSION['user_id'] ?? 0,
+        'user_name' => $_SESSION['user_name'] ?? 'Traveler',
+        'preferred_theme' => $preferredTheme,
+        'links' => [
+            ['href' => 'index.php', 'label' => 'Home', 'when' => 'all'],
+            ['href' => 'profile.php?user_id=' . (int) ($_SESSION['user_id'] ?? 0), 'label' => 'Profile', 'when' => 'all'],
+            ['href' => 'add-post.php', 'label' => 'Write Story', 'class' => 'nav-highlight', 'when' => 'all'],
+            ['href' => 'logout.php', 'label' => 'Logout', 'when' => 'all']
+        ]
+    ]);
+    ?>
 
     <!-- Edit Profile Section -->
     <section style="padding: 120px 20px 60px; min-height: 100vh;">
@@ -115,7 +108,7 @@ if (isset($_POST['update_profile'])) {
                 <h1 style="text-align: center; margin-bottom: 30px; font-size: 2.5rem;">Edit Your Profile</h1>
                 
                 <?php if (!empty($message)): ?>
-                    <div style="padding: 15px; border-radius: 10px; margin-bottom: 20px; background: <?php echo strpos($message, '✅') === 0 ? 'var(--success)' : 'var(--error)'; ?>; color: white; text-align: center;">
+                    <div style="padding: 15px; border-radius: 10px; margin-bottom: 20px; background: var(--error); color: white; text-align: center;">
                         <?php echo $message; ?>
                     </div>
                 <?php endif; ?>
@@ -182,7 +175,24 @@ if (isset($_POST['update_profile'])) {
         </div>
     </section>
 
+    <?php
+    tbRenderFooter([
+        'is_logged_in' => true,
+        'user_id' => $_SESSION['user_id'] ?? 0,
+        'show_newsletter' => true,
+        'footer_class' => 'main-footer',
+        'tagline' => 'Edit your travel identity, keep your stories sharp, and stay ready for the next trip.',
+        'bottom_text' => 'Profile tuned for smooth storytelling.'
+    ]);
+    ?>
+
     <!-- Scripts -->
     <script src="assets/js/index.fast.js?v=7"></script>
 </body>
 </html>
+
+
+
+
+
+

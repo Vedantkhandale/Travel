@@ -3,10 +3,11 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 include 'includes/db.php';
+include 'includes/layout_components.php';
 session_start();
 
-$message = "";
-$loginSuccess = false; 
+$message = '';
+$loginSuccess = false;
 
 if (isset($_POST['login'])) {
     $email = mysqli_real_escape_string($conn, $_POST['email']);
@@ -20,14 +21,16 @@ if (isset($_POST['login'])) {
         if (password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['name'];
-            $loginSuccess = true; 
+            $loginSuccess = true;
         } else {
-            $message = "❌ Wrong Password!";
+            $message = 'Wrong password.';
         }
     } else {
-        $message = "❌ User not found!";
+        $message = 'User not found.';
     }
 }
+
+$preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 'light' : 'dark';
 ?>
 
 <!DOCTYPE html>
@@ -35,51 +38,38 @@ if (isset($_POST['login'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Explore The World</title>
-    
+    <title>Login | TravelBlog</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/index.css?v=3">
+    <link rel="stylesheet" href="assets/css/enhance.css?v=46">
+    <link rel="stylesheet" href="assets/css/sexy-theme.css?v=1">
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        /* Simple Nav */
-        .nav {
-            position: fixed; top: 0; width: 100%; z-index: 1000;
-            background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);
-            padding: 15px 5%; display: flex; justify-content: space-between; align-items: center;
-        }
-        .nav .logo { color: white; font-size: 1.5rem; font-weight: 800; text-decoration: none; }
-        .nav .logo span { color: #6366f1; }
-        .nav a { color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 600; }
-        .nav a:hover { color: white; }
-
-        body {
-            background:
-                radial-gradient(circle at 10% -8%, rgba(99, 102, 241, 0.38), transparent 40%),
-                radial-gradient(circle at 88% -12%, rgba(168, 85, 247, 0.34), transparent 44%),
-                linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98));
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding-top: 80px;
+        body.auth-page {
+            min-height: 100vh;
+            padding: 110px 16px 120px;
         }
 
         .login-card {
-            background: rgba(30, 41, 59, 0.8); /* Darker background for visibility */
+            background: rgba(30, 41, 59, 0.8);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             padding: 45px 35px;
             border-radius: 30px;
-            width: 90%;
-            max-width: 400px;
+            width: 100%;
+            max-width: 420px;
             text-align: center;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
             color: white;
             animation: slideUp 0.8s ease;
+            z-index: 2;
+            margin: 0 auto;
         }
 
         @keyframes slideUp {
@@ -89,13 +79,16 @@ if (isset($_POST['login'])) {
 
         h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
 
-        .subtitle { color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; margin-bottom: 35px; }
+        .subtitle { color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; margin-bottom: 35px; }
 
         .input-box { position: relative; margin-bottom: 20px; }
 
         .input-box i {
-            position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
-            color: #6366f1; /* Bright Blue/Indigo for icons */
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #818cf8;
             font-size: 1.1rem;
         }
 
@@ -105,21 +98,20 @@ if (isset($_POST['login'])) {
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 15px;
-            color: #ffffff; /* Pure white text while typing */
+            color: #ffffff;
             font-size: 1rem;
             outline: none;
             transition: 0.3s;
         }
 
-        /* FIX: Better visibility for placeholder */
         input::placeholder { color: rgba(255, 255, 255, 0.75); }
 
         input:focus {
             background: rgba(255, 255, 255, 0.15);
-            border-color: #6366f1;
+            border-color: #818cf8;
         }
 
-        button {
+        .auth-submit {
             width: 100%;
             padding: 15px;
             border-radius: 15px;
@@ -129,12 +121,12 @@ if (isset($_POST['login'])) {
             font-size: 1.1rem;
             font-weight: 700;
             cursor: pointer;
-            transition: 0.4s;
+            transition: 0.35s;
             margin-top: 10px;
             box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
         }
 
-        button:hover {
+        .auth-submit:hover {
             transform: translateY(-3px);
             box-shadow: 0 15px 25px rgba(99, 102, 241, 0.4);
         }
@@ -144,7 +136,7 @@ if (isset($_POST['login'])) {
             color: #ffb3b3;
             padding: 12px;
             border-radius: 12px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             margin-bottom: 20px;
             border: 1px solid rgba(255, 77, 77, 0.3);
         }
@@ -153,36 +145,60 @@ if (isset($_POST['login'])) {
             margin-top: 25px;
             display: flex;
             justify-content: space-between;
-            font-size: 0.85rem;
+            gap: 14px;
+            font-size: 0.9rem;
         }
 
-        .footer-links a { color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: 0.3s; }
-        .footer-links a:hover { color: #6366f1; text-decoration: underline; }
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.86);
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .footer-links a:hover { color: #c4b5fd; text-decoration: underline; }
 
         #popup {
-            display: none; position: fixed; top: 25px; right: 25px;
-            background: #10b981; color: white; padding: 15px 25px;
-            border-radius: 12px; font-weight: 600; z-index: 1000;
+            display: none;
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background: #10b981;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 1000;
             animation: slideIn 0.5s ease-out;
         }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
     </style>
 </head>
 
-<body>
+<body class="index-page<?php echo $preferredTheme === 'dark' ? ' dark' : ''; ?> auth-page">
 
-    <nav class="nav">
-        <a href="index.php" class="logo"><i class="fas fa-map-marked-alt"></i> Travel<span>Blog</span></a>
-        <a href="signup.php">Sign Up</a>
-    </nav>
+    <?php
+    tbRenderHeader([
+        'is_logged_in' => false,
+        'preferred_theme' => $preferredTheme,
+        'show_welcome' => false,
+        'links' => [
+            ['href' => 'index.php', 'label' => 'Home', 'when' => 'all'],
+            ['href' => 'signup.php', 'label' => 'Sign Up', 'class' => 'nav-signup', 'when' => 'all']
+        ]
+    ]);
+    ?>
 
     <div class="login-card">
         <h2>Travel Login</h2>
         <p class="subtitle">Start your journey today</p>
 
-        <?php if($message){ ?>
-            <div class="error-msg"><?php echo $message; ?></div>
-        <?php } ?>
+        <?php if ($message): ?>
+            <div class="error-msg"><?php echo htmlspecialchars($message); ?></div>
+        <?php endif; ?>
 
         <form method="POST">
             <div class="input-box">
@@ -193,7 +209,7 @@ if (isset($_POST['login'])) {
                 <i class="fas fa-lock"></i>
                 <input type="password" name="password" placeholder="Password" required>
             </div>
-            <button name="login">Sign In</button>
+            <button class="auth-submit" name="login" type="submit">Sign In</button>
         </form>
 
         <div class="footer-links">
@@ -202,21 +218,26 @@ if (isset($_POST['login'])) {
         </div>
     </div>
 
-    <div id="popup"><i class="fas fa-check-circle"></i> &nbsp; Login Successful!</div>
+    <div id="popup"><i class="fas fa-check-circle"></i> Login successful!</div>
 
-    <footer style="position: fixed; bottom: 0; width: 100%; text-align: center; padding: 10px; color: rgba(255,255,255,0.6); font-size: 0.8rem;">
-        &copy; 2026 TravelBlog. All rights reserved.
-    </footer>
+    <?php
+    tbRenderFooter([
+        'is_logged_in' => false,
+        'show_newsletter' => false,
+        'footer_class' => 'main-footer auth-footer',
+        'tagline' => 'Login fast, write smooth, and keep every travel memory in one clean space.',
+        'bottom_text' => 'Client-ready travel experience.'
+    ]);
+    ?>
 
     <script>
-    <?php if($loginSuccess){ ?>
-        const popup = document.getElementById("popup");
-        popup.style.display = "block";
-        setTimeout(function(){ window.location.href = "index.php"; }, 2000);
-    <?php } ?>
+    <?php if ($loginSuccess): ?>
+        const popup = document.getElementById('popup');
+        popup.style.display = 'block';
+        setTimeout(function () { window.location.href = 'index.php'; }, 2000);
+    <?php endif; ?>
 
-    // Form validation
-    document.querySelector('form').addEventListener('submit', function(e) {
+    document.querySelector('form').addEventListener('submit', function (e) {
         const email = document.querySelector('input[name="email"]').value.trim();
         const password = document.querySelector('input[name="password"]').value;
 
@@ -229,10 +250,10 @@ if (isset($_POST['login'])) {
         if (password.length < 1) {
             alert('Please enter your password');
             e.preventDefault();
-            return;
         }
     });
     </script>
+    <script src="assets/js/index.fast.js?v=7"></script>
 
 </body>
 </html>

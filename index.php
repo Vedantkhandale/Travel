@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 
 include 'includes/db.php';
 include 'includes/story_helpers.php';
+include 'includes/layout_components.php';
 session_start();
 
 $posts = fetchHomepageStories($conn, ['limit' => 12]);
@@ -68,39 +69,23 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
 </head>
 
 <body class="index-page<?php echo $preferredTheme === 'dark' ? ' dark' : ''; ?>">
-
-    <nav class="navbar" id="mainNav">
-        <a href="index.php" class="logo">
-            <i class="fas fa-globe"></i><span>Travel</span>Blog
-        </a>
-
-        <div class="nav-links" id="navLinks">
-            <?php if ($isLoggedIn): ?>
-                <a href="profile.php?user_id=<?php echo $_SESSION['user_id']; ?>" class="user-welcome">
-                    <i class="fas fa-user"></i> Hi, <?php echo htmlspecialchars($userName); ?>
-                </a>
-            <?php endif; ?>
-
-            <a href="index.php">Home</a>
-            <a href="#categories">Categories</a>
-            <?php if ($isLoggedIn): ?>
-                <a href="add-post.php" class="nav-highlight">Write Story</a>
-                <a href="edit-profile.php">Edit Profile</a>
-                <a href="logout.php">Logout</a>
-            <?php else: ?>
-                <a href="login.php" class="nav-login">Login</a>
-                <a href="signup.php" class="nav-signup">Join Free</a>
-            <?php endif; ?>
-        </div>
-
-        <button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle theme" onclick="toggleTheme()">
-            <i class="fas <?php echo $preferredTheme === 'dark' ? 'fa-sun' : 'fa-moon'; ?>"></i>
-        </button>
-
-        <button class="menu-toggle" id="mobile-menu" type="button" aria-label="Open menu" aria-controls="navLinks" aria-expanded="false">
-            <i class="fas fa-bars"></i>
-        </button>
-    </nav>
+    <?php
+    tbRenderHeader([
+        'is_logged_in' => $isLoggedIn,
+        'user_id' => $_SESSION['user_id'] ?? 0,
+        'user_name' => $userName,
+        'preferred_theme' => $preferredTheme,
+        'links' => [
+            ['href' => 'index.php', 'label' => 'Home', 'when' => 'all'],
+            ['href' => 'index.php#categories', 'label' => 'Categories', 'when' => 'all'],
+            ['href' => 'add-post.php', 'label' => 'Write Story', 'class' => 'nav-highlight', 'when' => 'user'],
+            ['href' => 'edit-profile.php', 'label' => 'Edit Profile', 'when' => 'user'],
+            ['href' => 'logout.php', 'label' => 'Logout', 'when' => 'user'],
+            ['href' => 'login.php', 'label' => 'Login', 'class' => 'nav-login', 'when' => 'guest'],
+            ['href' => 'signup.php', 'label' => 'Join Free', 'class' => 'nav-signup', 'when' => 'guest']
+        ]
+    ]);
+    ?>
 
     <section class="hero">
         <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="assets/videos/hero-poster.avif" aria-hidden="true">
@@ -274,64 +259,16 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
         </div>
     </section>
 
-    <footer class="main-footer fade-in">
-        <div class="footer-grid">
-            <div class="footer-col footer-brand">
-                <a href="index.php" class="footer-logo">
-                    <i class="fas fa-globe"></i> <span>Travel</span>Blog
-                </a>
-                <p class="footer-text">Simple travel stories, smooth reading, and memories worth keeping.</p>
-                <div class="social-icons">
-                    <a href="https://facebook.com" class="social-btn" title="Facebook" target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a href="https://twitter.com" class="social-btn" title="Twitter" target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-twitter"></i>
-                    </a>
-                    <a href="https://instagram.com" class="social-btn" title="Instagram" target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="https://youtube.com" class="social-btn" title="YouTube" target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-youtube"></i>
-                    </a>
-                </div>
-            </div>
-
-            <div class="footer-col">
-                <h4>Quick Links</h4>
-                <ul class="footer-links">
-                    <li><a href="index.php"><i class="fas fa-house"></i> Home</a></li>
-                    <li><a href="#categories"><i class="fas fa-compass"></i> Categories</a></li>
-                    <li><a href="<?php echo $isLoggedIn ? 'add-post.php' : 'login.php'; ?>"><i class="fas fa-pen-to-square"></i> Write Story</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-col">
-                <h4>Explore</h4>
-                <ul class="footer-links">
-                    <li><a href="#postsGrid"><i class="fas fa-bolt"></i> Latest Stories</a></li>
-                    <li><a href="#categories"><i class="fas fa-mountain"></i> Adventures</a></li>
-                    <li><a href="<?php echo $isLoggedIn ? 'profile.php?user_id=' . $_SESSION['user_id'] : 'login.php'; ?>"><i class="fas fa-user"></i> Profile</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-col">
-                <h4>Newsletter</h4>
-                <p class="footer-text">One good travel story every week. No spam.</p>
-                <form class="footer-form" id="newsletterForm" novalidate>
-                    <input type="email" id="newsletterEmail" name="newsletter_email" placeholder="you@example.com" aria-label="Email address" autocomplete="email" required>
-                    <button class="btn btn-primary" type="submit">Subscribe</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="footer-bottom">
-            <div class="footer-bottom-inner">
-                <span>&copy; <?php echo date('Y'); ?> TravelBlog</span>
-                <span>Simple, smooth, made for travelers.</span>
-            </div>
-        </div>
-    </footer>
+    <?php
+    tbRenderFooter([
+        'is_logged_in' => $isLoggedIn,
+        'user_id' => $_SESSION['user_id'] ?? 0,
+        'show_newsletter' => true,
+        'footer_class' => 'main-footer fade-in',
+        'tagline' => 'Simple travel stories, smooth reading, and memories worth keeping.',
+        'bottom_text' => 'Simple, smooth, made for travelers.'
+    ]);
+    ?>
 
     <script src="assets/js/index.fast.js?v=7"></script>
 </body>
