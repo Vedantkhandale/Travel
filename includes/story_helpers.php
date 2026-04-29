@@ -132,6 +132,8 @@ if (!function_exists('fetchHomepageStories')) {
 if (!function_exists('renderHomepageStoryCard')) {
     function renderHomepageStoryCard(array $post, $isLoggedIn, $currentUserId = null)
     {
+        ob_start();
+
         $storyType = !empty($post['image']) ? 'Photo Story' : 'Travel Note';
         $storyDate = formatStoryDate($post['created_at'] ?? '');
         $readTime = estimateReadTime($post['description'] ?? '');
@@ -146,6 +148,7 @@ if (!function_exists('renderHomepageStoryCard')) {
             : pickFallbackStoryImage($postId);
         $likeCount = (int) ($post['like_count'] ?? 0);
         $commentCount = (int) ($post['comment_count'] ?? 0);
+        $canEdit = $isLoggedIn && $currentUserId && ((int) $post['user_id'] === (int) $currentUserId);
         ?>
         <div class="card" id="post-<?php echo $postId; ?>" data-post-id="<?php echo $postId; ?>" data-title="<?php echo htmlspecialchars((string) ($post['title'] ?? '')); ?>" data-description="<?php echo htmlspecialchars((string) ($post['description'] ?? '')); ?>" data-author="<?php echo $authorName; ?>" data-has-image="<?php echo !empty($post['image']) ? '1' : '0'; ?>">
             <div class="card-img">

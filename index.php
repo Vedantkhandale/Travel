@@ -1,91 +1,8 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-include 'includes/db.php';
-include 'includes/story_helpers.php';
-include 'includes/layout_components.php';
-session_start();
-
-$posts = fetchHomepageStories($conn, ['limit' => 12]);
-
-function fetchSingleCount($conn, $sql)
-{
-    $countResult = mysqli_query($conn, $sql);
-    if (!$countResult) {
-        return 0;
-    }
-
-    $row = mysqli_fetch_row($countResult);
-    if (!$row || !isset($row[0])) {
-        return 0;
-    }
-
-    return (int) $row[0];
-}
-
-$totalStories = fetchSingleCount($conn, "SELECT COUNT(*) FROM posts");
-$communities = fetchSingleCount($conn, "SELECT COUNT(*) FROM users");
-$destinations = fetchSingleCount($conn, "SELECT COUNT(*) FROM posts WHERE image IS NOT NULL AND image <> ''");
-
-if ($destinations === 0 && $totalStories > 0) {
-    $destinations = max(1, (int) round($totalStories * 0.55));
-}
-
-$onlineUsers = 0;
-if ($communities > 0) {
-    $estimatedOnline = ($communities * 0.22) + ($totalStories * 0.03) + ((int) date('i') % 7);
-    $onlineUsers = (int) max(1, min($communities, round($estimatedOnline)));
-} elseif ($totalStories > 0) {
-    $onlineUsers = (int) max(1, min(25, round($totalStories * 0.04)));
-}
-
-// Check if user is logged in
-$isLoggedIn = isset($_SESSION['user_id']);
-$userName = $isLoggedIn ? $_SESSION['user_name'] : '';
-$preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 'light' : 'dark';
+$title = 'TravelBlog - Simple, Smooth Travel Stories';
+$description = 'Read smooth travel stories, photo journals, and destination notes in a stylish dark-glass experience.';
+include 'includes/header.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TravelBlog - Simple, Smooth Travel Stories</title>
-    <meta name="description" content="Read smooth travel stories, photo journals, and destination notes in a stylish dark-glass experience.">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <link rel="stylesheet" href="assets/css/index.css?v=3">
-    <link rel="stylesheet" href="assets/css/enhance.css?v=46">
-    <link rel="stylesheet" href="assets/css/sexy-theme.css?v=1">
-   
-
-   
-</head>
-
-<body class="index-page<?php echo $preferredTheme === 'dark' ? ' dark' : ''; ?>">
-    <?php
-    tbRenderHeader([
-        'is_logged_in' => $isLoggedIn,
-        'user_id' => $_SESSION['user_id'] ?? 0,
-        'user_name' => $userName,
-        'preferred_theme' => $preferredTheme,
-        'links' => [
-            ['href' => 'index.php', 'label' => 'Home', 'when' => 'all'],
-            ['href' => 'index.php#categories', 'label' => 'Categories', 'when' => 'all'],
-            ['href' => 'add-post.php', 'label' => 'Write Story', 'class' => 'nav-highlight', 'when' => 'user'],
-            ['href' => 'edit-profile.php', 'label' => 'Edit Profile', 'when' => 'user'],
-            ['href' => 'logout.php', 'label' => 'Logout', 'when' => 'user'],
-            ['href' => 'login.php', 'label' => 'Login', 'class' => 'nav-login', 'when' => 'guest'],
-            ['href' => 'signup.php', 'label' => 'Join Free', 'class' => 'nav-signup', 'when' => 'guest']
-        ]
-    ]);
-    ?>
 
     <section class="hero">
         <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="assets/videos/hero-poster.avif" aria-hidden="true">
@@ -259,17 +176,4 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
         </div>
     </section>
 
-    <?php
-    tbRenderFooter([
-        'is_logged_in' => $isLoggedIn,
-        'user_id' => $_SESSION['user_id'] ?? 0,
-        'show_newsletter' => true,
-        'footer_class' => 'main-footer fade-in',
-        'tagline' => 'Simple travel stories, smooth reading, and memories worth keeping.',
-        'bottom_text' => 'Simple, smooth, made for travelers.'
-    ]);
-    ?>
-
-    <script src="assets/js/index.fast.js?v=7"></script>
-</body>
-</html>
+<?php include 'includes/footer.php'; ?>

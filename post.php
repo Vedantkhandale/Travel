@@ -168,6 +168,19 @@ if (!$post) {
         @media (min-width: 600px) { .btn-print { width: auto; } }
         .btn-print:hover { background: var(--primary); color: white; }
 
+        /* Comments Styles */
+        .comments-section { margin: 40px auto; }
+        .comments-list { margin-bottom: 30px; }
+        .comment-item { display: flex; gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8fafc; border-radius: 12px; }
+        .comment-avatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+        .comment-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-placeholder { width: 100%; height: 100%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .comment-content { flex: 1; }
+        .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .comment-author { font-weight: 600; color: var(--text); }
+        .comment-date { font-size: 0.8rem; color: var(--muted); }
+        .comment-text { color: #475569; line-height: 1.5; }
+
     </style>
 </head>
 <body>
@@ -219,6 +232,24 @@ if (!$post) {
         </footer>
     </main>
 
+    <!-- Comments Section -->
+    <section class="comments-section" style="max-width: 850px; margin: 40px auto; padding: 0 25px;">
+        <h3 style="margin-bottom: 20px; color: var(--text); font-size: 1.5rem;">Comments</h3>
+        <?php
+        include 'includes/story_helpers.php';
+        echo renderComments($conn, $post['id']);
+        ?>
+
+        <?php if (isset($_SESSION['user_id'])): ?>
+            <form class="comment-form" style="margin-top: 30px; display: flex; flex-direction: column; gap: 15px;">
+                <textarea id="commentText" placeholder="Share your thoughts..." style="padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit; resize: vertical; min-height: 100px;" required></textarea>
+                <button type="submit" class="btn-comment" style="align-self: flex-start; background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">Post Comment</button>
+            </form>
+        <?php else: ?>
+            <p style="margin-top: 20px; color: var(--muted);">Please <a href="login.php" style="color: var(--primary);">login</a> to comment.</p>
+        <?php endif; ?>
+    </section>
+
     <script>
         const postTitle = "<?php echo addslashes($post['title']); ?>";
         const postUrl = window.location.href;
@@ -253,6 +284,34 @@ if (!$post) {
                 setTimeout(() => linkIcon.style.color = originalColor, 1000);
             });
         }
+
+        // Comment form submission
+        document.querySelector('.comment-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const commentText = document.getElementById('commentText').value.trim();
+            if (!commentText) return;
+
+            fetch('ajax/comment.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'post_id=<?php echo $post['id']; ?>&comment=' + encodeURIComponent(commentText)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('commentText').value = '';
+                    location.reload(); // Reload to show new comment
+                } else {
+                    alert(data.message || 'Error posting comment');
+                }
+            })
+            .catch(error => {
+                console.error('Comment error:', error);
+                alert('Error posting comment');
+            });
+        });
     </script>
 
 </body>
