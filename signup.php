@@ -34,6 +34,8 @@ if (isset($_POST['signup'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signup | TravelBlog</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -52,9 +54,10 @@ if (isset($_POST['signup'])) {
         .nav a:hover { color: white; }
 
         body {
-            background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), 
-                        url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1600&q=80');
-            background-size: cover; background-position: center;
+            background:
+                radial-gradient(circle at 8% -8%, rgba(99, 102, 241, 0.36), transparent 40%),
+                radial-gradient(circle at 92% -10%, rgba(168, 85, 247, 0.32), transparent 42%),
+                linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98));
             height: 100vh; display: flex; justify-content: center; align-items: center; padding-top: 80px;
         }
 

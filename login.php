@@ -37,6 +37,8 @@ if (isset($_POST['login'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Explore The World</title>
     
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -55,10 +57,10 @@ if (isset($_POST['login'])) {
         .nav a:hover { color: white; }
 
         body {
-            background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), 
-                        url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1600&q=80');
-            background-size: cover;
-            background-position: center;
+            background:
+                radial-gradient(circle at 10% -8%, rgba(99, 102, 241, 0.38), transparent 40%),
+                radial-gradient(circle at 88% -12%, rgba(168, 85, 247, 0.34), transparent 44%),
+                linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98));
             height: 100vh;
             display: flex;
             justify-content: center;

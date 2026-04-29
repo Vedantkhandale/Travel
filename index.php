@@ -51,11 +51,12 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TravelBlog - Luxe Purple Travel Stories</title>
-    <meta name="description" content="Read smooth travel stories, photo journals, and destination notes in a premium purple-white experience.">
+    <title>TravelBlog - Simple, Smooth Travel Stories</title>
+    <meta name="description" content="Read smooth travel stories, photo journals, and destination notes in a stylish dark-glass experience.">
 
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <link rel="stylesheet" href="assets/css/index.css?v=3">
@@ -106,9 +107,9 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
             <source src="assets/videos/heroo.mp4" type="video/mp4">
         </video>
         <div class="hero-shell">
-            <span class="hero-kicker">Luxe purple travel stories.</span>
-            <h1>Travel Stories, But Make It Smooth.</h1>
-            <p>Search a place and dive into polished travel stories in a premium purple-white experience.</p>
+            <span class="hero-kicker">Simple. Smooth. Beautiful.</span>
+            <h1>Travel Stories That Feel Effortless.</h1>
+            <p>Search any place and read clean, stylish travel stories in seconds.</p>
 
             <div class="search-box">
                 <i class="fas fa-search"></i>
@@ -132,14 +133,14 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
 
             <div class="hero-cards" aria-label="Hero quick cards">
                 <article class="hero-mini-card">
-                    <h3>Latest travel drops</h3>
-                    <p>Fresh stories from the community, updated live.</p>
+                    <h3>Fresh stories today</h3>
+                    <p>New travel posts from real explorers, updated live.</p>
                     <a href="#postsGrid" class="hero-mini-link"><i class="fas fa-arrow-right"></i> View Stories</a>
                 </article>
 
                 <article class="hero-mini-card">
-                    <h3>Publish your next trip</h3>
-                    <p>Share your photo story with bold visuals and silky-smooth cards.</p>
+                    <h3>Share your next trip</h3>
+                    <p>Post your travel story with clean cards and a smooth reader experience.</p>
                     <?php if ($isLoggedIn): ?>
                         <a href="add-post.php" class="hero-mini-link"><i class="fas fa-pen-nib"></i> Write Story</a>
                     <?php else: ?>
@@ -279,7 +280,7 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
                 <a href="index.php" class="footer-logo">
                     <i class="fas fa-globe"></i> <span>Travel</span>Blog
                 </a>
-                <p class="footer-text">Polished travel stories, luxe visuals, and memories worth replaying.</p>
+                <p class="footer-text">Simple travel stories, smooth reading, and memories worth keeping.</p>
                 <div class="social-icons">
                     <a href="https://facebook.com" class="social-btn" title="Facebook" target="_blank" rel="noopener noreferrer">
                         <i class="fab fa-facebook-f"></i>
@@ -316,7 +317,7 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
 
             <div class="footer-col">
                 <h4>Newsletter</h4>
-                <p class="footer-text">One premium travel drop a week. No spam, only vibes.</p>
+                <p class="footer-text">One good travel story every week. No spam.</p>
                 <form class="footer-form" id="newsletterForm" novalidate>
                     <input type="email" id="newsletterEmail" name="newsletter_email" placeholder="you@example.com" aria-label="Email address" autocomplete="email" required>
                     <button class="btn btn-primary" type="submit">Subscribe</button>
@@ -327,12 +328,11 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
         <div class="footer-bottom">
             <div class="footer-bottom-inner">
                 <span>&copy; <?php echo date('Y'); ?> TravelBlog</span>
-                <span>Made for modern, stylish travel stories.</span>
+                <span>Simple, smooth, made for travelers.</span>
             </div>
         </div>
     </footer>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="assets/js/index.fast.js?v=7"></script>
 </body>
 </html>

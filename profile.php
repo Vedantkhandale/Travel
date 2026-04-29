@@ -46,8 +46,8 @@ $profilePhotoSrc = !empty($user['profile_photo'])
     : buildAvatarPlaceholder($user['name'] ?? 'Traveler');
 
 $profileTagline = $isOwner
-    ? 'Your stories, profile glow-up, and latest photo-led travel memories.'
-    : 'Stories, snapshots, and destination notes collected with purple travel vibes.';
+    ? 'Your stories, profile details, and latest photo travel memories.'
+    : 'Stories, snapshots, and destination notes collected on the road.';
 ?>
 
 <!DOCTYPE html>
@@ -1009,16 +1009,16 @@ $profileTagline = $isOwner
             <div>
                 <span class="section-kicker">Latest From This Profile</span>
                 <h2>Recent Stories</h2>
-                <p>Fresh travel notes, visual memories, and places this explorer chose to publish.</p>
+                <p>Fresh travel notes, visual memories, and places this explorer chose to share.</p>
             </div>
-            <span class="story-total"><?php echo $storyCount; ?> published</span>
+            <span class="story-total"><?php echo $storyCount; ?> stories published</span>
         </div>
 
         <?php if (empty($posts)): ?>
             <div class="empty-profile">
                 <span class="section-kicker">Nothing published yet</span>
                 <h3>No travel stories here yet</h3>
-                <p>This profile is ready, but the stories have not landed yet. The next trip might start the whole archive.</p>
+                <p>This profile is ready, but no stories are published yet. The next trip can start the collection.</p>
                 <?php if ($isOwner): ?>
                     <div class="action-area">
                         <a href="add-post.php" class="btn-ui btn-add"><i class="fas fa-plus-circle"></i> Publish First Story</a>
