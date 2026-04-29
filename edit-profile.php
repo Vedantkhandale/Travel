@@ -65,7 +65,7 @@ if (isset($_POST['update_profile'])) {
         header("Location: profile.php?user_id=$user_id&updated=1");
         exit();
     } else {
-        $message = "❌ Error updating profile.";
+        $message = "Error updating profile.";
     }
 }
 ?>
@@ -80,8 +80,9 @@ if (isset($_POST['update_profile'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/index.css?v=3">
     <link rel="stylesheet" href="assets/css/enhance.css?v=35">
+    <link rel="stylesheet" href="assets/css/sexy-theme.css?v=1">
 </head>
-<body>
+<body class="edit-profile-page">
 
     <!-- Navbar -->
     <nav class="navbar" id="mainNav">
@@ -111,7 +112,7 @@ if (isset($_POST['update_profile'])) {
     <section style="padding: 120px 20px 60px; min-height: 100vh;">
         <div class="container">
             <div style="max-width: 600px; margin: 0 auto; background: var(--card-bg); padding: 40px; border-radius: 20px; box-shadow: var(--shadow-lg);">
-                <h1 style="text-align: center; margin-bottom: 30px; font-size: 2.5rem;">✏️ Edit Your Profile</h1>
+                <h1 style="text-align: center; margin-bottom: 30px; font-size: 2.5rem;">Edit Your Profile</h1>
                 
                 <?php if (!empty($message)): ?>
                     <div style="padding: 15px; border-radius: 10px; margin-bottom: 20px; background: <?php echo strpos($message, '✅') === 0 ? 'var(--success)' : 'var(--error)'; ?>; color: white; text-align: center;">
@@ -182,6 +183,6 @@ if (isset($_POST['update_profile'])) {
     </section>
 
     <!-- Scripts -->
-    <script src="assets/js/index.js"></script>
+    <script src="assets/js/index.fast.js?v=7"></script>
 </body>
 </html>

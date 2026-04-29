@@ -31,7 +31,7 @@ function buildAvatarPlaceholder($name) {
 
     $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">'
         . '<defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">'
-        . '<stop offset="0%" stop-color="#0f766e"/><stop offset="100%" stop-color="#d97706"/>'
+        . '<stop offset="0%" stop-color="#6d28d9"/><stop offset="100%" stop-color="#c026d3"/>'
         . '</linearGradient></defs>'
         . '<rect width="320" height="320" rx="48" fill="url(#g)"/>'
         . '<text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="130" font-weight="700" fill="#ffffff">'
@@ -46,8 +46,8 @@ $profilePhotoSrc = !empty($user['profile_photo'])
     : buildAvatarPlaceholder($user['name'] ?? 'Traveler');
 
 $profileTagline = $isOwner
-    ? 'Your stories, profile details, and latest photo-led travel memories.'
-    : 'Stories, snapshots, and destination notes collected on the road.';
+    ? 'Your stories, profile glow-up, and latest photo-led travel memories.'
+    : 'Stories, snapshots, and destination notes collected with purple travel vibes.';
 ?>
 
 <!DOCTYPE html>
@@ -943,6 +943,7 @@ $profileTagline = $isOwner
             }
         }
     </style>
+    <link rel="stylesheet" href="assets/css/sexy-theme.css?v=1">
 </head>
 
 <body class="profile-page" data-theme="<?php echo $preferredTheme; ?>">

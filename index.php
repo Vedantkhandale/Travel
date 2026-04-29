@@ -51,8 +51,8 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TravelBlog - Simple Travel Stories</title>
-    <meta name="description" content="Read clean travel stories, photo journals, and destination notes in a fast, smooth, premium space.">
+    <title>TravelBlog - Luxe Purple Travel Stories</title>
+    <meta name="description" content="Read smooth travel stories, photo journals, and destination notes in a premium purple-white experience.">
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -60,6 +60,7 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
 
     <link rel="stylesheet" href="assets/css/index.css?v=3">
     <link rel="stylesheet" href="assets/css/enhance.css?v=46">
+    <link rel="stylesheet" href="assets/css/sexy-theme.css?v=1">
    
 
    
@@ -105,9 +106,9 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
             <source src="assets/videos/heroo.mp4" type="video/mp4">
         </video>
         <div class="hero-shell">
-            <span class="hero-kicker">Fast, simple travel stories.</span>
-            <h1>Stories That Feel Smooth.</h1>
-            <p>Search a place and start reading premium travel stories in seconds.</p>
+            <span class="hero-kicker">Luxe purple travel stories.</span>
+            <h1>Travel Stories, But Make It Smooth.</h1>
+            <p>Search a place and dive into polished travel stories in a premium purple-white experience.</p>
 
             <div class="search-box">
                 <i class="fas fa-search"></i>
@@ -138,7 +139,7 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
 
                 <article class="hero-mini-card">
                     <h3>Publish your next trip</h3>
-                    <p>Share your photo story with clean, fast cards.</p>
+                    <p>Share your photo story with bold visuals and silky-smooth cards.</p>
                     <?php if ($isLoggedIn): ?>
                         <a href="add-post.php" class="hero-mini-link"><i class="fas fa-pen-nib"></i> Write Story</a>
                     <?php else: ?>
@@ -278,7 +279,7 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
                 <a href="index.php" class="footer-logo">
                     <i class="fas fa-globe"></i> <span>Travel</span>Blog
                 </a>
-                <p class="footer-text">Clean travel stories, strong visuals, and memories worth keeping.</p>
+                <p class="footer-text">Polished travel stories, luxe visuals, and memories worth replaying.</p>
                 <div class="social-icons">
                     <a href="https://facebook.com" class="social-btn" title="Facebook" target="_blank" rel="noopener noreferrer">
                         <i class="fab fa-facebook-f"></i>
@@ -315,7 +316,7 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
 
             <div class="footer-col">
                 <h4>Newsletter</h4>
-                <p class="footer-text">One good travel story a week. No spam.</p>
+                <p class="footer-text">One premium travel drop a week. No spam, only vibes.</p>
                 <form class="footer-form" id="newsletterForm" novalidate>
                     <input type="email" id="newsletterEmail" name="newsletter_email" placeholder="you@example.com" aria-label="Email address" autocomplete="email" required>
                     <button class="btn btn-primary" type="submit">Subscribe</button>
@@ -326,7 +327,7 @@ $preferredTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'light') ? 
         <div class="footer-bottom">
             <div class="footer-bottom-inner">
                 <span>&copy; <?php echo date('Y'); ?> TravelBlog</span>
-                <span>Made for modern travel stories.</span>
+                <span>Made for modern, stylish travel stories.</span>
             </div>
         </div>
     </footer>
